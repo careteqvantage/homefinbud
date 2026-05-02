@@ -2548,9 +2548,9 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 // ─── Google Sheets Sync ───────────────────────────────────
-const SYNC_URL_KEY = 'homesync_url_v2';
-const SYNC_POLL_MS = 30000; // poll every 30 seconds
-const DEFAULT_SYNC_URL = 'https://script.google.com/macros/s/AKfycbzHOkGqvM5ry4gyfnmUH1yumJanoDtHNTRIsAchzeRH1stbMo7LCx9hWOaIDFr77Z2Ljw/exec';
+const SYNC_URL_KEY = 'homesync_url_v3';
+const SYNC_POLL_MS = 30000;
+const DEFAULT_SYNC_URL = 'https://script.google.com/macros/s/AKfycbyup8xPHDiGpuPVrp4UdUGQWxtF9-AaQ6pMMcBxFJ8SxkEXZcn15ulKNgKlI8TAQIClHg/exec';
 
 function getSyncUrl() {
   return localStorage.getItem(SYNC_URL_KEY) || DEFAULT_SYNC_URL;
@@ -2559,24 +2559,47 @@ function setSyncUrl(url) {
   localStorage.setItem(SYNC_URL_KEY, url);
 }
 
+// PUSH: use no-cors POST — fire and forget (can't read response, but data gets written)
 async function sheetsPush(url, data) {
-  // Use GET with encoded data to avoid CORS preflight issues
-  const encoded = encodeURIComponent(JSON.stringify(data));
-  const res = await fetch(`${url}?action=merge&data=${encoded}`, {
-    method: 'GET',
-    redirect: 'follow',
-  });
-  const text = await res.text();
-  try { return JSON.parse(text); } catch(e) { return { success: true }; }
+  try {
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'merge', data }),
+    });
+    return { success: true };
+  } catch(e) {
+    throw e;
+  }
 }
 
-async function sheetsPull(url) {
-  const res = await fetch(`${url}?action=read`, {
-    method: 'GET',
-    redirect: 'follow',
+// PULL: use JSONP to bypass CORS on GET
+function sheetsPull(url) {
+  return new Promise((resolve, reject) => {
+    const cbName = '__gscb_' + Date.now();
+    const timeout = setTimeout(() => {
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      reject(new Error('Timeout'));
+    }, 10000);
+
+    window[cbName] = (data) => {
+      clearTimeout(timeout);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      resolve(data);
+    };
+
+    const script = document.createElement('script');
+    script.src = `${url}?action=read&callback=${cbName}`;
+    script.onerror = () => {
+      clearTimeout(timeout);
+      delete window[cbName];
+      reject(new Error('Script load error'));
+    };
+    document.head.appendChild(script);
   });
-  const text = await res.text();
-  try { return JSON.parse(text); } catch(e) { return { success: false, error: 'Parse error' }; }
 }
 
 // ─── Settings View ────────────────────────────────────────
@@ -2778,6 +2801,8 @@ function App() {
   useEffect(() => { syncUrlRef.current = syncUrl; }, [syncUrl]);
   useEffect(() => { dataRef.current = data; }, [data]);
 
+  const isPulling = useRef(false);
+
   // Persist locally on every change + push to sheets
   useEffect(() => {
     saveData(data);
@@ -2791,12 +2816,7 @@ function App() {
     if (!url) return;
     setSyncState(s => ({ ...s, status: 'syncing' }));
     try {
-      // Push bills with deletedIds so remote also excludes them
-      const payload = {
-        ...d,
-        bills: d.bills.filter(b => !(d.deletedIds || []).includes(b.id)),
-      };
-      await sheetsPush(url, payload);
+      await sheetsPush(url, d);
       setSyncState({ status: 'synced', lastSynced: new Date().toISOString(), error: null });
     } catch(e) {
       setSyncState(s => ({ ...s, status: 'error', error: e.message }));
@@ -2805,29 +2825,35 @@ function App() {
 
   async function pullFromSheets() {
     const url = syncUrlRef.current;
-    if (!url) return;
+    if (!url || isPulling.current) return;
+    isPulling.current = true;
     setSyncState(s => ({ ...s, status: 'syncing' }));
     try {
       const res = await sheetsPull(url);
-      if (res.success && res.data) {
+      if (res && res.success && res.data) {
         const current = dataRef.current;
-        // Get list of locally deleted bill IDs
         const deletedIds = new Set(current.deletedIds || []);
-        // Keep local bills, add any remote-only bills that haven't been deleted
+        // Local bills always win — remote only adds bills we don't have
         const localBillMap = {};
         current.bills.forEach(b => { localBillMap[b.id] = b; });
-        const remoteBillMap = {};
-        (res.data.bills || []).forEach(b => { remoteBillMap[b.id] = b; });
-        // Union: local wins, remote adds new bills, deleted ids are excluded
-        const mergedBills = Object.values({ ...remoteBillMap, ...localBillMap })
-          .filter(b => !deletedIds.has(b.id));
-        const merged = { ...current, bills: mergedBills };
-        setData(merged);
-        saveData(merged);
+        const remoteBills = (res.data.bills || []).filter(b =>
+          !deletedIds.has(b.id) && !localBillMap[b.id]
+        );
+        // Only update if remote has NEW bills we don't have
+        if (remoteBills.length > 0) {
+          const merged = {
+            ...current,
+            bills: [...current.bills, ...remoteBills],
+          };
+          setData(merged);
+          saveData(merged);
+        }
       }
       setSyncState({ status: 'synced', lastSynced: new Date().toISOString(), error: null });
     } catch(e) {
       setSyncState(s => ({ ...s, status: 'error', error: e.message }));
+    } finally {
+      isPulling.current = false;
     }
   }
 
