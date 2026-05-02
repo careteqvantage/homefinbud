@@ -1,0 +1,3020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Home$ — Family Finance Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Orbitron:wght@400;600;700;900&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+/* ─── Design Tokens ───────────────────────────────────── */
+:root {
+  --bg: #060a10;
+  --bg2: #0d1520;
+  --bg3: #111d2e;
+  --bg4: #162030;
+  --navy: #00d4ff;
+  --navy2: #00b8e6;
+  --navy-lt: rgba(0,212,255,0.08);
+  --cyan: #00d4ff;
+  --cyan-dim: rgba(0,212,255,0.15);
+  --cyan-glow: 0 0 20px rgba(0,212,255,0.3);
+  --amber: #f59e0b;
+  --amber-lt: rgba(245,158,11,0.12);
+  --green: #10b981;
+  --green-lt: rgba(16,185,129,0.12);
+  --red: #ef4444;
+  --red-lt: rgba(239,68,68,0.12);
+  --orange: #f97316;
+  --orange-lt: rgba(249,115,22,0.12);
+  --purple: #a855f7;
+  --purple-lt: rgba(168,85,247,0.12);
+  --text: #e2eaf4;
+  --text2: #8da4be;
+  --text3: #4d6680;
+  --border: #1e3048;
+  --border-bright: #2a4a6e;
+  --shadow: 0 2px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.6);
+  --glow-cyan: 0 0 24px rgba(0,212,255,0.25);
+  --glow-green: 0 0 16px rgba(16,185,129,0.3);
+  --glow-red: 0 0 16px rgba(239,68,68,0.3);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --sidebar-w: 240px;
+  --font: 'Space Grotesk', sans-serif;
+  --font-display: 'Orbitron', monospace;
+  --font-mono: 'Space Mono', monospace;
+}
+
+/* ─── Reset ───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, select, textarea { font-family: inherit; font-size: 14px; }
+
+/* ─── Layout ──────────────────────────────────────────── */
+#root { display: flex; height: 100vh; overflow: hidden; }
+
+.app-sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+  position: relative;
+}
+.app-sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 1px; height: 100%;
+  background: linear-gradient(180deg, transparent, var(--cyan) 40%, var(--cyan) 60%, transparent);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.sidebar-logo {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sidebar-logo-mark {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  line-height: 1;
+  text-shadow: var(--glow-cyan);
+}
+.sidebar-logo-sub {
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
+.sidebar-nav {
+  padding: 16px 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-section-label {
+  font-size: 9px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 14px 10px 6px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.nav-item:hover {
+  background: var(--navy-lt);
+  color: var(--cyan);
+  border-color: var(--border-bright);
+}
+.nav-item.active {
+  background: var(--cyan-dim);
+  color: var(--cyan);
+  border-color: rgba(0,212,255,0.3);
+  box-shadow: inset 2px 0 0 var(--cyan);
+}
+.nav-icon { width: 20px; text-align: center; font-size: 15px; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--amber);
+  color: #000;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 99px;
+  font-family: var(--font-mono);
+}
+
+.sidebar-bottom {
+  padding: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sidebar-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text3);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-mono);
+}
+.sidebar-action:hover { background: var(--navy-lt); color: var(--cyan); }
+
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+.main-content {
+  flex: 1;
+  padding: 32px 36px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ─── Buttons ─────────────────────────────────────────── */
+.btn-primary {
+  background: transparent;
+  color: var(--cyan);
+  padding: 9px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.15s;
+  border: 1px solid var(--cyan);
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  font-size: 11px;
+}
+.btn-primary:hover {
+  background: var(--cyan);
+  color: #000;
+  box-shadow: var(--glow-cyan);
+  transform: translateY(-1px);
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border-bright);
+  color: var(--text2);
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+.btn-ghost.danger { color: var(--red); border-color: transparent; }
+.btn-ghost.danger:hover { background: var(--red-lt); border-color: var(--red); }
+.btn-danger {
+  background: var(--red);
+  color: white;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+/* ─── View Header ─────────────────────────────────────── */
+.view-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.view-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  color: var(--cyan);
+  line-height: 1.1;
+  letter-spacing: 1px;
+  text-shadow: var(--glow-cyan);
+}
+.view-sub { color: var(--text3); margin-top: 4px; font-size: 12px; font-family: var(--font-mono); }
+
+/* ─── Dashboard ───────────────────────────────────────── */
+.dash-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.dash-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  color: var(--cyan);
+  line-height: 1.1;
+  letter-spacing: 1px;
+  text-shadow: var(--glow-cyan);
+}
+.dash-sub { color: var(--text3); margin-top: 4px; font-size: 12px; font-family: var(--font-mono); }
+
+/* Alert banners */
+.alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.alert-banner.overdue { background: var(--red-lt); color: var(--red); border: 1px solid rgba(239,68,68,0.3); box-shadow: var(--glow-red); }
+.alert-banner.due-soon { background: var(--amber-lt); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+.alert-icon { font-size: 16px; }
+
+/* KPI Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.kpi-card {
+  background: var(--bg2);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  border-top: 2px solid transparent;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 60%);
+  pointer-events: none;
+}
+.kpi-card:hover { transform: translateY(-2px); border-color: var(--border-bright); }
+.kpi-card.primary { border-top-color: var(--cyan); }
+.kpi-card.primary:hover { box-shadow: var(--shadow), var(--glow-cyan); }
+.kpi-card.success { border-top-color: var(--green); }
+.kpi-card.success:hover { box-shadow: var(--shadow), var(--glow-green); }
+.kpi-card.warning { border-top-color: var(--amber); }
+.kpi-card.accent { border-top-color: var(--purple); }
+.kpi-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text3); margin-bottom: 10px; font-family: var(--font-mono); }
+.kpi-value { font-family: var(--font-mono); font-size: 24px; color: var(--text); line-height: 1; margin-bottom: 6px; font-weight: 700; }
+.kpi-card.primary .kpi-value { color: var(--cyan); }
+.kpi-card.success .kpi-value { color: var(--green); }
+.kpi-card.warning .kpi-value { color: var(--amber); }
+.kpi-card.accent .kpi-value { color: var(--purple); }
+.kpi-sub { font-size: 11px; color: var(--text3); font-family: var(--font-mono); }
+
+/* Month progress */
+.month-progress-card {
+  background: var(--bg2);
+  border-radius: var(--radius);
+  padding: 18px 22px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+.mp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.mp-title { font-weight: 600; color: var(--text2); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono); }
+.mp-pct { font-weight: 700; color: var(--green); font-size: 16px; font-family: var(--font-mono); text-shadow: var(--glow-green); }
+.mp-bar-track { height: 6px; background: var(--bg3); border-radius: 99px; overflow: hidden; border: 1px solid var(--border); }
+.mp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--green)); border-radius: 99px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 0 8px rgba(0,212,255,0.5); }
+.mp-footer { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; font-family: var(--font-mono); }
+.paid-label { color: var(--green); font-weight: 600; }
+.owed-label { color: var(--amber); font-weight: 600; }
+
+/* Two col */
+.dash-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+/* Cards */
+.dash-card {
+  background: var(--bg2);
+  border-radius: var(--radius);
+  padding: 0;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+.dash-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+.dash-card-header h3 {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-family: var(--font-mono);
+}
+.cc-util-badge { font-size: 12px; font-weight: 700; font-family: var(--font-mono); }
+
+/* Upcoming */
+.upcoming-list { padding: 4px 0; }
+.upcoming-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 18px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.upcoming-row:last-child { border-bottom: none; }
+.upcoming-row:hover { background: var(--navy-lt); }
+.upcoming-row.overdue { background: rgba(239,68,68,0.05); border-left: 2px solid var(--red); }
+.upcoming-row.critical { background: rgba(249,115,22,0.05); border-left: 2px solid var(--orange); }
+.upcoming-left { display: flex; align-items: center; gap: 10px; }
+.upcoming-icon { font-size: 16px; }
+.upcoming-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.upcoming-meta { font-size: 10px; color: var(--text3); margin-top: 1px; font-family: var(--font-mono); }
+.upcoming-right { display: flex; align-items: center; gap: 10px; }
+.upcoming-amount { font-weight: 700; color: var(--text); font-size: 14px; font-family: var(--font-mono); }
+.upcoming-days { font-size: 10px; font-weight: 700; color: var(--text3); font-family: var(--font-mono); }
+.upcoming-days.overdue { color: var(--red); text-shadow: var(--glow-red); }
+.upcoming-days.critical { color: var(--orange); }
+.upcoming-days.soon { color: var(--amber); }
+.empty-state { padding: 24px 20px; text-align: center; color: var(--text3); font-size: 13px; font-family: var(--font-mono); }
+
+/* Pay buttons */
+.pay-btn {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-bright);
+  background: transparent;
+  color: var(--text3);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.pay-btn:hover { border-color: var(--green); color: var(--green); box-shadow: var(--glow-green); }
+.pay-btn.paid { background: var(--green); border-color: var(--green); color: #000; box-shadow: var(--glow-green); }
+
+.pay-btn-lg {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-bright);
+  background: transparent;
+  color: var(--text3);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pay-btn-lg:hover { border-color: var(--green); color: var(--green); box-shadow: var(--glow-green); }
+.pay-btn-lg.paid { background: var(--green); border-color: var(--green); color: #000; box-shadow: var(--glow-green); }
+
+/* Category list */
+.cat-list { padding: 8px 18px 14px; display: flex; flex-direction: column; gap: 10px; }
+.cat-row-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.cat-row-name { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; color: var(--text2); }
+.cat-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.cat-row-amount { font-size: 12px; font-weight: 700; color: var(--text); font-family: var(--font-mono); }
+.cat-bar-track { height: 4px; background: var(--bg4); border-radius: 99px; overflow: hidden; }
+.cat-bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease; opacity: 0.85; }
+
+/* CC Grid */
+.cc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; padding: 14px 18px 18px; }
+.cc-summary-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: var(--bg3);
+  position: relative;
+  overflow: hidden;
+}
+.cc-summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.cc-summary-card:hover { border-color: var(--cyan); box-shadow: var(--glow-cyan); transform: translateY(-2px); }
+.cc-summary-card:hover::before { opacity: 1; }
+.cc-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.cc-card-name { font-weight: 600; font-size: 13px; color: var(--text); }
+.cc-card-num { font-size: 11px; color: var(--text3); font-family: var(--font-mono); letter-spacing: 1px; }
+.cc-card-balance { font-family: var(--font-mono); font-size: 22px; color: var(--cyan); margin-bottom: 4px; font-weight: 700; }
+.cc-card-meta { display: flex; gap: 12px; font-size: 10px; color: var(--text3); margin-bottom: 8px; font-family: var(--font-mono); }
+.cc-util-bar-track { height: 3px; background: var(--bg4); border-radius: 99px; overflow: hidden; margin-bottom: 10px; }
+.cc-util-bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s; }
+.cc-card-bottom { display: flex; justify-content: space-between; align-items: center; }
+.cc-due-badge, .cc-paid-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; font-family: var(--font-mono); }
+.cc-due-badge { background: var(--bg4); color: var(--text2); border: 1px solid var(--border); }
+.cc-due-badge.overdue { background: var(--red-lt); color: var(--red); border-color: rgba(239,68,68,0.3); }
+.cc-due-badge.soon { background: var(--amber-lt); color: var(--amber); border-color: rgba(245,158,11,0.3); }
+.cc-paid-badge { background: var(--bg4); color: var(--text3); border: 1px solid var(--border); }
+.cc-paid-badge.paid { background: var(--green-lt); color: var(--green); border-color: rgba(16,185,129,0.3); }
+
+/* ─── Bills List ──────────────────────────────────────── */
+.bills-list-view {}
+.filters-bar {
+  background: var(--bg2);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--border);
+}
+.search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 360px;
+}
+.search-icon { position: absolute; left: 12px; font-size: 13px; color: var(--text3); }
+.search-input {
+  width: 100%;
+  padding: 8px 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg3);
+  outline: none;
+  transition: border-color 0.15s;
+  color: var(--text);
+}
+.search-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(0,212,255,0.1); }
+.search-input::placeholder { color: var(--text3); }
+.search-clear { position: absolute; right: 10px; color: var(--text3); font-size: 12px; }
+.cat-filter-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+.pill {
+  padding: 4px 11px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  letter-spacing: 0.3px;
+}
+.pill:hover { border-color: var(--cyan); color: var(--cyan); }
+.pill.active { background: var(--cyan-dim); color: var(--cyan); border-color: rgba(0,212,255,0.4); }
+
+/* Table */
+.bills-table-wrap {
+  background: var(--bg2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.bills-table { width: 100%; border-collapse: collapse; }
+.bills-table thead th {
+  background: var(--bg3);
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text3);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+.bills-table thead th.sortable { cursor: pointer; user-select: none; }
+.bills-table thead th.sortable:hover { color: var(--cyan); }
+.sort-icon { margin-left: 4px; opacity: 0.4; }
+.sort-icon.active { opacity: 1; color: var(--cyan); }
+.bill-row { border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+.bill-row:hover { background: var(--navy-lt); }
+.bill-row.overdue td { background: rgba(239,68,68,0.04) !important; border-left: 2px solid var(--red); }
+.bill-row.critical td { background: rgba(249,115,22,0.04) !important; }
+.bill-row.paid { opacity: 0.5; }
+.bill-row td { padding: 10px 14px; vertical-align: middle; }
+.bill-name-cell { display: flex; align-items: center; gap: 10px; }
+.bill-cat-icon { font-size: 16px; flex-shrink: 0; }
+.bill-name { font-weight: 600; font-size: 13px; color: var(--text); }
+.bill-sub { font-size: 10px; color: var(--text3); margin-top: 1px; font-family: var(--font-mono); }
+.cat-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; white-space: nowrap; font-family: var(--font-mono); }
+.due-info { display: flex; flex-direction: column; gap: 3px; }
+.due-date { font-weight: 500; font-size: 13px; font-family: var(--font-mono); }
+.due-badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; width: fit-content; font-family: var(--font-mono); letter-spacing: 0.5px; }
+.due-badge.overdue { background: var(--red-lt); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+.due-badge.critical { background: var(--orange-lt); color: var(--orange); border: 1px solid rgba(249,115,22,0.3); }
+.due-badge.soon { background: var(--amber-lt); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+.amount-cell { display: flex; flex-direction: column; }
+.amount-main { font-weight: 700; font-size: 14px; color: var(--cyan); font-family: var(--font-mono); }
+.amount-min { font-size: 10px; color: var(--text3); font-family: var(--font-mono); }
+.autopay-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; white-space: nowrap; font-family: var(--font-mono); }
+.autopay-badge.on { background: var(--green-lt); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+.autopay-badge.off { background: var(--bg3); color: var(--text3); border: 1px solid var(--border); }
+.hist-btn { width: 28px; height: 28px; border-radius: var(--radius-sm); font-size: 13px; color: var(--text3); cursor: pointer; border: 1px solid var(--border); background: transparent; transition: all 0.15s; }
+.hist-btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: var(--glow-cyan); }
+.empty-row { text-align: center; color: var(--text3); padding: 40px; font-size: 13px; font-family: var(--font-mono); }
+.totals-row { background: var(--bg3); border-top: 1px solid var(--border-bright); }
+.totals-row td { padding: 10px 14px; }
+.totals-label { font-weight: 700; color: var(--text2); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono); }
+.totals-amount { font-weight: 800; color: var(--cyan); font-size: 15px; font-family: var(--font-mono); }
+.totals-annual { font-size: 11px; color: var(--text3); text-align: right; font-family: var(--font-mono); }
+
+/* Payment history */
+.history-row td { background: var(--bg3) !important; padding: 0 !important; border-left: 3px solid var(--cyan) !important; }
+.payment-history { padding: 14px 18px; }
+.ph-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text3); margin-bottom: 10px; font-family: var(--font-mono); }
+.ph-months { display: flex; gap: 8px; }
+.ph-month { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ph-dot {
+  width: 30px; height: 30px;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  border: 1px solid var(--border);
+}
+.ph-month.paid .ph-dot { background: var(--green-lt); color: var(--green); border-color: rgba(16,185,129,0.4); box-shadow: var(--glow-green); }
+.ph-month.unpaid .ph-dot { background: var(--bg4); color: var(--text3); }
+.ph-label { font-size: 9px; color: var(--text3); font-weight: 600; font-family: var(--font-mono); }
+.ph-notes { margin-top: 10px; font-size: 11px; color: var(--text2); background: var(--bg4); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-family: var(--font-mono); }
+
+/* ─── Calendar ────────────────────────────────────────── */
+.calendar-view {}
+.cal-nav { display: flex; align-items: center; gap: 12px; }
+.cal-nav-btn {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  font-size: 16px;
+  color: var(--text2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.cal-nav-btn:hover { background: var(--cyan-dim); color: var(--cyan); border-color: rgba(0,212,255,0.4); box-shadow: var(--glow-cyan); }
+.cal-month-label { font-weight: 700; font-size: 14px; color: var(--cyan); min-width: 160px; text-align: center; font-family: var(--font-mono); letter-spacing: 1px; text-shadow: var(--glow-cyan); }
+
+.cal-summary-strip {
+  background: var(--bg2);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  border: 1px solid var(--border);
+}
+.cal-sum-item { display: flex; flex-direction: column; align-items: center; padding: 0 20px; }
+.cal-sum-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; color: var(--text3); margin-bottom: 4px; font-family: var(--font-mono); }
+.cal-sum-value { font-family: var(--font-mono); font-size: 18px; color: var(--text); font-weight: 700; }
+.cal-sum-value.green { color: var(--green); text-shadow: var(--glow-green); }
+.cal-sum-value.amber { color: var(--amber); }
+.cal-sum-divider { width: 1px; background: var(--border); height: 32px; }
+
+.cal-grid-wrap {
+  background: var(--bg2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.cal-dow-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+}
+.cal-dow { padding: 8px; text-align: center; font-size: 9px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.cal-cell {
+  min-height: 100px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 6px;
+}
+.cal-cell:nth-child(7n) { border-right: none; }
+.cal-cell.empty { background: var(--bg); opacity: 0.4; }
+.cal-cell.has-bills { background: var(--bg2); }
+.cal-cell.today { background: rgba(0,212,255,0.04); border: 1px solid rgba(0,212,255,0.2); }
+.cal-cell.has-overdue { background: rgba(239,68,68,0.03); }
+.cal-day-num { font-size: 11px; font-weight: 700; color: var(--text3); margin-bottom: 4px; font-family: var(--font-mono); }
+.today-badge {
+  background: var(--cyan);
+  color: #000;
+  width: 20px; height: 20px;
+  border-radius: 3px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  font-weight: 900;
+  box-shadow: var(--glow-cyan);
+}
+.cal-day-bills { display: flex; flex-direction: column; gap: 2px; }
+.cal-bill-chip {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 5px 2px 7px;
+  border-radius: 3px;
+  border-left: 2px solid var(--border);
+  background: var(--bg3);
+  cursor: pointer;
+  transition: all 0.1s;
+  font-size: 9px;
+}
+.cal-bill-chip:hover { background: var(--bg4); border-left-color: var(--cyan); }
+.cal-bill-chip.paid { opacity: 0.35; }
+.cal-bill-chip.overdue { background: var(--red-lt); border-left-color: var(--red); }
+.chip-icon { font-size: 9px; }
+.chip-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: var(--text2); }
+.chip-amount { font-weight: 700; color: var(--cyan); white-space: nowrap; font-family: var(--font-mono); }
+.chip-pay {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--border-bright);
+  background: transparent;
+  font-size: 8px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.1s;
+  color: var(--text3);
+}
+.chip-pay.paid { background: var(--green); border-color: var(--green); color: #000; }
+.cal-day-total { font-size: 8px; font-weight: 800; color: var(--cyan); text-align: right; margin-top: 2px; padding-right: 3px; font-family: var(--font-mono); opacity: 0.7; }
+.cal-legend { display: flex; gap: 16px; padding: 10px 14px; font-size: 11px; color: var(--text3); align-items: center; font-family: var(--font-mono); border-top: 1px solid var(--border); }
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+.legend-dot.green { background: var(--green); box-shadow: var(--glow-green); }
+.legend-dot.amber { background: var(--amber); }
+.legend-dot.red { background: var(--red); box-shadow: var(--glow-red); }
+
+/* ─── Modal ───────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,5,15,0.75);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.15s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-box {
+  background: var(--bg2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg), var(--glow-cyan);
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.2s ease;
+  border: 1px solid var(--border-bright);
+}
+@keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.modal-title { display: flex; align-items: center; gap: 10px; }
+.modal-icon { font-size: 22px; }
+.modal-title h2 { font-family: var(--font-display); font-size: 18px; color: var(--cyan); letter-spacing: 1px; text-shadow: var(--glow-cyan); }
+.modal-close {
+  width: 30px; height: 30px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  font-size: 12px;
+  color: var(--text3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.modal-close:hover { background: var(--red-lt); color: var(--red); border-color: var(--red); }
+.modal-body { flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+.modal-footer {
+  display: flex; align-items: center;
+  padding: 14px 22px;
+  border-top: 1px solid var(--border);
+  gap: 10px;
+  background: var(--bg3);
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+/* CC section */
+.cc-section {
+  background: rgba(0,212,255,0.04);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  border: 1px solid rgba(0,212,255,0.2);
+}
+.cc-section-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--cyan); margin-bottom: 12px; font-family: var(--font-mono); }
+
+/* Form */
+.form-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 120px; }
+.form-group label { font-size: 9px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono); }
+.form-group input, .form-group select, .form-group textarea {
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg3);
+  outline: none;
+  transition: all 0.15s;
+  color: var(--text);
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 2px rgba(0,212,255,0.1);
+}
+.form-group select { color: var(--text); }
+.form-group select option { background: var(--bg2); }
+.form-group input.error { border-color: var(--red); }
+.form-group textarea { resize: vertical; }
+.form-error { font-size: 10px; color: var(--red); font-family: var(--font-mono); }
+.input-prefix-wrap { position: relative; }
+.input-prefix { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 13px; pointer-events: none; font-family: var(--font-mono); }
+.toggle-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); margin-top: 4px; }
+.toggle-label input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--cyan); cursor: pointer; }
+.delete-confirm { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--red); font-weight: 600; font-family: var(--font-mono); }
+
+/* ─── Settings view ───────────────────────────────────── */
+.settings-view {}
+.settings-section { background: var(--bg2); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; margin-bottom: 16px; border: 1px solid var(--border); }
+.settings-title { font-size: 10px; font-weight: 700; color: var(--cyan); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 2px; font-family: var(--font-mono); text-shadow: var(--glow-cyan); }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.settings-row:last-child { border-bottom: none; }
+.settings-label { font-size: 13px; font-weight: 500; color: var(--text); }
+.settings-desc { font-size: 11px; color: var(--text3); margin-top: 2px; font-family: var(--font-mono); }
+.import-btn-wrap { position: relative; overflow: hidden; display: inline-block; }
+.import-btn-wrap input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+/* ─── Responsive ──────────────────────────────────────── */
+@media (max-width: 900px) {
+  :root { --sidebar-w: 60px; }
+  .sidebar-logo-sub, .nav-item span:not(.nav-icon), .nav-badge, .nav-section-label { display: none; }
+  .sidebar-logo-mark { font-size: 14px; letter-spacing: 0; }
+  .nav-item { justify-content: center; padding: 12px 8px; }
+  .sidebar-bottom .sidebar-action span:not(:first-child) { display: none; }
+  .sidebar-bottom { padding: 6px; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .dash-two-col { grid-template-columns: 1fr; }
+  .main-content { padding: 20px 16px; }
+}
+@media (max-width: 600px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .bills-table thead th:nth-child(3),
+  .bills-table td:nth-child(3),
+  .bills-table thead th:nth-child(6),
+  .bills-table td:nth-child(6) { display: none; }
+  .cal-cell { min-height: 60px; }
+  .chip-name { display: none; }
+}
+
+/* ─── Print ───────────────────────────────────────────── */
+@media print {
+  .app-sidebar, .filters-bar .cat-filter-pills, .modal-overlay { display: none !important; }
+  .app-main { overflow: visible; }
+  body { background: white; color: black; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+
+// Home$ — Data model, storage, and sample data
+
+const CATEGORIES = [
+  { id: 'mortgage', label: 'Mortgage / Rent', icon: '🏠', color: '#1e3a5f' },
+  { id: 'utilities', label: 'Utilities', icon: '⚡', color: '#2d6a4f' },
+  { id: 'credit_card', label: 'Credit Cards', icon: '💳', color: '#7b2d8b' },
+  { id: 'auto', label: 'Auto', icon: '🚗', color: '#1565c0' },
+  { id: 'insurance_health', label: 'Health & Dental Insurance', icon: '🏥', color: '#00695c' },
+  { id: 'insurance_life', label: 'Life Insurance', icon: '🛡️', color: '#4527a0' },
+  { id: 'subscriptions', label: 'Subscriptions', icon: '📱', color: '#c62828' },
+  { id: 'groceries', label: 'Groceries / Food', icon: '🛒', color: '#e65100' },
+  { id: 'investments', label: 'Investments / Savings', icon: '📈', color: '#1b5e20' },
+  { id: 'medical', label: 'Medical / Prescriptions', icon: '💊', color: '#880e4f' },
+  { id: 'home_maintenance', label: 'Home Maintenance', icon: '🔧', color: '#4e342e' },
+  { id: 'other', label: 'Other', icon: '📋', color: '#546e7a' },
+];
+
+const SAMPLE_BILLS = [
+  {
+    id: 'b1',
+    name: 'Wells Fargo Mortgage',
+    category: 'mortgage',
+    amount: 2247.00,
+    dueDay: 1,
+    autopay: true,
+    notes: 'Primary home mortgage – 30yr fixed 6.875%',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'b2',
+    name: 'Chase Sapphire Reserve',
+    category: 'credit_card',
+    amount: 350.00,
+    minPayment: 35.00,
+    dueDay: 15,
+    statementCloseDay: 22,
+    lastFour: '4821',
+    apr: 22.99,
+    creditLimit: 15000,
+    currentBalance: 4200,
+    autopay: false,
+    notes: 'Travel card – autopay minimum only',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'b3',
+    name: 'Citi Double Cash',
+    category: 'credit_card',
+    amount: 120.00,
+    minPayment: 25.00,
+    dueDay: 20,
+    statementCloseDay: 13,
+    lastFour: '9047',
+    apr: 19.74,
+    creditLimit: 8000,
+    currentBalance: 1850,
+    autopay: true,
+    notes: '2% cashback everyday card',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'b4',
+    name: 'Eversource Electric',
+    category: 'utilities',
+    amount: 185.00,
+    dueDay: 8,
+    autopay: true,
+    notes: '',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'b5',
+    name: 'National Grid Gas',
+    category: 'utilities',
+    amount: 92.00,
+    dueDay: 12,
+    autopay: true,
+    notes: '',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'b6',
+    name: 'Comcast Xfinity',
+    category: 'utilities',
+    amount: 149.99,
+    dueDay: 18,
+    autopay: true,
+    notes: 'Internet + cable bundle',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'b7',
+    name: 'T-Mobile Family Plan',
+    category: 'utilities',
+    amount: 145.00,
+    dueDay: 24,
+    autopay: true,
+    notes: '4 lines',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'b8',
+    name: 'Toyota Financial',
+    category: 'auto',
+    amount: 487.00,
+    dueDay: 5,
+    autopay: true,
+    notes: '2022 RAV4 – 60mo loan',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'b9',
+    name: 'Progressive Auto Insurance',
+    category: 'auto',
+    amount: 198.00,
+    dueDay: 28,
+    autopay: true,
+    notes: 'Both vehicles – 6mo policy',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'b10',
+    name: 'Blue Cross Blue Shield',
+    category: 'insurance_health',
+    amount: 524.00,
+    dueDay: 1,
+    autopay: true,
+    notes: 'Family health + dental plan',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'b11',
+    name: 'Northwestern Mutual',
+    category: 'insurance_life',
+    amount: 187.00,
+    dueDay: 10,
+    autopay: false,
+    notes: '$500k term – expires 2044',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'b12',
+    name: 'Netflix',
+    category: 'subscriptions',
+    amount: 22.99,
+    dueDay: 3,
+    autopay: true,
+    notes: '4K plan',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'b13',
+    name: 'Spotify Family',
+    category: 'subscriptions',
+    amount: 16.99,
+    dueDay: 7,
+    autopay: true,
+    notes: '6 accounts',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'b14',
+    name: 'Amazon Prime',
+    category: 'subscriptions',
+    amount: 14.99,
+    dueDay: 22,
+    autopay: true,
+    notes: 'Annual billed monthly',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+  {
+    id: 'b15',
+    name: 'Fidelity 401k Contribution',
+    category: 'investments',
+    amount: 800.00,
+    dueDay: 15,
+    autopay: true,
+    notes: 'Monthly transfer to retirement',
+    paymentHistory: {},
+    createdAt: '2024-01-01',
+  },
+];
+
+const STORAGE_KEY = 'homebudget_v1';
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return parsed;
+    }
+  } catch (e) {
+    console.warn('Failed to load data:', e);
+  }
+  // Initialize with sample data
+  const initial = {
+    bills: SAMPLE_BILLS,
+    budget: {
+      monthly: 6500,
+    },
+    settings: {
+      userName: 'Family Budget',
+      theme: 'warm',
+      currency: 'USD',
+    },
+  };
+  saveData(initial);
+  return initial;
+}
+
+function saveData(data) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.warn('Failed to save data:', e);
+  }
+}
+
+function exportData(data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `home-budget-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(file, callback) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      callback(null, data);
+    } catch (err) {
+      callback(err, null);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function generateId() {
+  return 'b' + Date.now() + Math.random().toString(36).slice(2, 6);
+}
+
+// Returns days until due (negative = overdue)
+function getDaysUntilDue(dueDay) {
+  const today = new Date();
+  const thisMonth = new Date(today.getFullYear(), today.getMonth(), dueDay);
+  let diff = Math.ceil((thisMonth - today) / (1000 * 60 * 60 * 24));
+  if (diff < -5) {
+    // Already past, next month
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, dueDay);
+    diff = Math.ceil((nextMonth - today) / (1000 * 60 * 60 * 24));
+  }
+  return diff;
+}
+
+function getMonthKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function getCurrentMonthKey() {
+  return getMonthKey(new Date());
+}
+
+function isPaidThisMonth(bill) {
+  const key = getCurrentMonthKey();
+  return !!(bill.paymentHistory && bill.paymentHistory[key]);
+}
+
+function formatCurrency(amount) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount || 0);
+}
+
+function formatDueDate(dueDay) {
+  const today = new Date();
+  const d = new Date(today.getFullYear(), today.getMonth(), dueDay);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// Expose everything globally
+Object.assign(window, {
+  CATEGORIES,
+  SAMPLE_BILLS,
+  loadData,
+  saveData,
+  exportData,
+  importData,
+  generateId,
+  getDaysUntilDue,
+  getMonthKey,
+  getCurrentMonthKey,
+  isPaidThisMonth,
+  formatCurrency,
+  formatDueDate,
+});
+
+</script>
+<script type="text/babel">
+
+// tweaks-panel.jsx
+// Reusable Tweaks shell + form-control helpers.
+//
+// Owns the host protocol (listens for __activate_edit_mode / __deactivate_edit_mode,
+// posts __edit_mode_available / __edit_mode_set_keys / __edit_mode_dismissed) so
+// individual prototypes don't re-roll it. Ships a consistent set of controls so you
+// don't hand-draw <input type="range">, segmented radios, steppers, etc.
+//
+// Usage (in an HTML file that loads React + Babel):
+//
+//   const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+//     "primaryColor": "#D97757",
+//     "fontSize": 16,
+//     "density": "regular",
+//     "dark": false
+//   }/*EDITMODE-END*/;
+//
+//   function App() {
+//     const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+//     return (
+//       <div style={{ fontSize: t.fontSize, color: t.primaryColor }}>
+//         Hello
+//         <TweaksPanel>
+//           <TweakSection label="Typography" />
+//           <TweakSlider label="Font size" value={t.fontSize} min={10} max={32} unit="px"
+//                        onChange={(v) => setTweak('fontSize', v)} />
+//           <TweakRadio  label="Density" value={t.density}
+//                        options={['compact', 'regular', 'comfy']}
+//                        onChange={(v) => setTweak('density', v)} />
+//           <TweakSection label="Theme" />
+//           <TweakColor  label="Primary" value={t.primaryColor}
+//                        onChange={(v) => setTweak('primaryColor', v)} />
+//           <TweakToggle label="Dark mode" value={t.dark}
+//                        onChange={(v) => setTweak('dark', v)} />
+//         </TweaksPanel>
+//       </div>
+//     );
+//   }
+//
+// ─────────────────────────────────────────────────────────────────────────────
+
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;overflow-x:hidden;min-height:0;
+    scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-body::-webkit-scrollbar{width:8px}
+  .twk-body::-webkit-scrollbar-track{background:transparent;margin:2px}
+  .twk-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px;
+    border:2px solid transparent;background-clip:content-box}
+  .twk-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25);
+    border:2px solid transparent;background-clip:content-box}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;
+    color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
+
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+
+  .twk-field{appearance:none;width:100%;height:26px;padding:0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;
+    background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}
+  .twk-field:focus{border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85)}
+  select.twk-field{padding-right:22px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='rgba(0,0,0,.5)' d='M0 0h10L5 6z'/></svg>");
+    background-repeat:no-repeat;background-position:right 8px center}
+
+  .twk-slider{appearance:none;-webkit-appearance:none;width:100%;height:4px;margin:6px 0;
+    border-radius:999px;background:rgba(0,0,0,.12);outline:none}
+  .twk-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+    width:14px;height:14px;border-radius:50%;background:#fff;
+    border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+  .twk-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+    background:#fff;border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+
+  .twk-seg{position:relative;display:flex;padding:2px;border-radius:8px;
+    background:rgba(0,0,0,.06);user-select:none}
+  .twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:6px;
+    background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.12);
+    transition:left .15s cubic-bezier(.3,.7,.4,1),width .15s}
+  .twk-seg.dragging .twk-seg-thumb{transition:none}
+  .twk-seg button{appearance:none;position:relative;z-index:1;flex:1;border:0;
+    background:transparent;color:inherit;font:inherit;font-weight:500;min-height:22px;
+    border-radius:6px;cursor:default;padding:4px 6px;line-height:1.2;
+    overflow-wrap:anywhere}
+
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;
+    background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
+
+  .twk-num{display:flex;align-items:center;height:26px;padding:0 0 0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;background:rgba(255,255,255,.6)}
+  .twk-num-lbl{font-weight:500;color:rgba(41,38,27,.6);cursor:ew-resize;
+    user-select:none;padding-right:8px}
+  .twk-num input{flex:1;min-width:0;height:100%;border:0;background:transparent;
+    font:inherit;font-variant-numeric:tabular-nums;text-align:right;padding:0 8px 0 0;
+    outline:none;color:inherit;-moz-appearance:textfield}
+  .twk-num input::-webkit-inner-spin-button,.twk-num input::-webkit-outer-spin-button{
+    -webkit-appearance:none;margin:0}
+  .twk-num-unit{padding-right:8px;color:rgba(41,38,27,.45)}
+
+  .twk-btn{appearance:none;height:26px;padding:0 12px;border:0;border-radius:7px;
+    background:rgba(0,0,0,.78);color:#fff;font:inherit;font-weight:500;cursor:default}
+  .twk-btn:hover{background:rgba(0,0,0,.88)}
+  .twk-btn.secondary{background:rgba(0,0,0,.06);color:inherit}
+  .twk-btn.secondary:hover{background:rgba(0,0,0,.1)}
+
+  .twk-swatch{appearance:none;-webkit-appearance:none;width:56px;height:22px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:6px;padding:0;cursor:default;
+    background:transparent;flex-shrink:0}
+  .twk-swatch::-webkit-color-swatch-wrapper{padding:0}
+  .twk-swatch::-webkit-color-swatch{border:0;border-radius:5.5px}
+  .twk-swatch::-moz-color-swatch{border:0;border-radius:5.5px}
+`;
+
+// ── useTweaks ───────────────────────────────────────────────────────────────
+// Single source of truth for tweak values. setTweak persists via the host
+// (__edit_mode_set_keys → host rewrites the EDITMODE block on disk).
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  // Accepts either setTweak('key', value) or setTweak({ key: value, ... }) so a
+  // useState-style call doesn't write a "[object Object]" key into the persisted
+  // JSON block.
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null
+      ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+  }, []);
+  return [values, setTweak];
+}
+
+// ── TweaksPanel ─────────────────────────────────────────────────────────────
+// Floating shell. Registers the protocol listener BEFORE announcing
+// availability — if the announce ran first, the host's activate could land
+// before our handler exists and the toolbar toggle would silently no-op.
+// The close button posts __edit_mode_dismissed so the host's toolbar toggle
+// flips off in lockstep; the host echoes __deactivate_edit_mode back which
+// is what actually hides the panel.
+function TweaksPanel({ title = 'Tweaks', children }) {
+  const [open, setOpen] = React.useState(false);
+  const dragRef = React.useRef(null);
+  const offsetRef = React.useRef({ x: 16, y: 16 });
+  const PAD = 16;
+
+  const clampToViewport = React.useCallback(() => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const maxRight = Math.max(PAD, window.innerWidth - w - PAD);
+    const maxBottom = Math.max(PAD, window.innerHeight - h - PAD);
+    offsetRef.current = {
+      x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)),
+      y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)),
+    };
+    panel.style.right = offsetRef.current.x + 'px';
+    panel.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    clampToViewport();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', clampToViewport);
+      return () => window.removeEventListener('resize', clampToViewport);
+    }
+    const ro = new ResizeObserver(clampToViewport);
+    ro.observe(document.documentElement);
+    return () => ro.disconnect();
+  }, [open, clampToViewport]);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const dismiss = () => {
+    setOpen(false);
+    window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+  };
+
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right;
+    const startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => {
+      offsetRef.current = {
+        x: startRight - (ev.clientX - sx),
+        y: startBottom - (ev.clientY - sy),
+      };
+      clampToViewport();
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel" data-noncommentable=""
+           style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" aria-label="Close tweaks"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={dismiss}>✕</button>
+        </div>
+        <div className="twk-body">{children}</div>
+      </div>
+    </>
+  );
+}
+
+// ── Layout helpers ──────────────────────────────────────────────────────────
+
+function TweakSection({ label, children }) {
+  return (
+    <>
+      <div className="twk-sect">{label}</div>
+      {children}
+    </>
+  );
+}
+
+function TweakRow({ label, value, children, inline = false }) {
+  return (
+    <div className={inline ? 'twk-row twk-row-h' : 'twk-row'}>
+      <div className="twk-lbl">
+        <span>{label}</span>
+        {value != null && <span className="twk-val">{value}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ── Controls ────────────────────────────────────────────────────────────────
+
+function TweakSlider({ label, value, min = 0, max = 100, step = 1, unit = '', onChange }) {
+  return (
+    <TweakRow label={label} value={`${value}${unit}`}>
+      <input type="range" className="twk-slider" min={min} max={max} step={step}
+             value={value} onChange={(e) => onChange(Number(e.target.value))} />
+    </TweakRow>
+  );
+}
+
+function TweakToggle({ label, value, onChange }) {
+  return (
+    <div className="twk-row twk-row-h">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <button type="button" className="twk-toggle" data-on={value ? '1' : '0'}
+              role="switch" aria-checked={!!value}
+              onClick={() => onChange(!value)}><i /></button>
+    </div>
+  );
+}
+
+function TweakRadio({ label, value, options, onChange }) {
+  const trackRef = React.useRef(null);
+  const [dragging, setDragging] = React.useState(false);
+  const opts = options.map((o) => (typeof o === 'object' ? o : { value: o, label: o }));
+  const idx = Math.max(0, opts.findIndex((o) => o.value === value));
+  const n = opts.length;
+
+  // The active value is read by pointer-move handlers attached for the lifetime
+  // of a drag — ref it so a stale closure doesn't fire onChange for every move.
+  const valueRef = React.useRef(value);
+  valueRef.current = value;
+
+  const segAt = (clientX) => {
+    const r = trackRef.current.getBoundingClientRect();
+    const inner = r.width - 4;
+    const i = Math.floor(((clientX - r.left - 2) / inner) * n);
+    return opts[Math.max(0, Math.min(n - 1, i))].value;
+  };
+
+  const onPointerDown = (e) => {
+    setDragging(true);
+    const v0 = segAt(e.clientX);
+    if (v0 !== valueRef.current) onChange(v0);
+    const move = (ev) => {
+      if (!trackRef.current) return;
+      const v = segAt(ev.clientX);
+      if (v !== valueRef.current) onChange(v);
+    };
+    const up = () => {
+      setDragging(false);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+
+  return (
+    <TweakRow label={label}>
+      <div ref={trackRef} role="radiogroup" onPointerDown={onPointerDown}
+           className={dragging ? 'twk-seg dragging' : 'twk-seg'}>
+        <div className="twk-seg-thumb"
+             style={{ left: `calc(2px + ${idx} * (100% - 4px) / ${n})`,
+                      width: `calc((100% - 4px) / ${n})` }} />
+        {opts.map((o) => (
+          <button key={o.value} type="button" role="radio" aria-checked={o.value === value}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </TweakRow>
+  );
+}
+
+function TweakSelect({ label, value, options, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <select className="twk-field" value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((o) => {
+          const v = typeof o === 'object' ? o.value : o;
+          const l = typeof o === 'object' ? o.label : o;
+          return <option key={v} value={v}>{l}</option>;
+        })}
+      </select>
+    </TweakRow>
+  );
+}
+
+function TweakText({ label, value, placeholder, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <input className="twk-field" type="text" value={value} placeholder={placeholder}
+             onChange={(e) => onChange(e.target.value)} />
+    </TweakRow>
+  );
+}
+
+function TweakNumber({ label, value, min, max, step = 1, unit = '', onChange }) {
+  const clamp = (n) => {
+    if (min != null && n < min) return min;
+    if (max != null && n > max) return max;
+    return n;
+  };
+  const startRef = React.useRef({ x: 0, val: 0 });
+  const onScrubStart = (e) => {
+    e.preventDefault();
+    startRef.current = { x: e.clientX, val: value };
+    const decimals = (String(step).split('.')[1] || '').length;
+    const move = (ev) => {
+      const dx = ev.clientX - startRef.current.x;
+      const raw = startRef.current.val + dx * step;
+      const snapped = Math.round(raw / step) * step;
+      onChange(clamp(Number(snapped.toFixed(decimals))));
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+  return (
+    <div className="twk-num">
+      <span className="twk-num-lbl" onPointerDown={onScrubStart}>{label}</span>
+      <input type="number" value={value} min={min} max={max} step={step}
+             onChange={(e) => onChange(clamp(Number(e.target.value)))} />
+      {unit && <span className="twk-num-unit">{unit}</span>}
+    </div>
+  );
+}
+
+function TweakColor({ label, value, onChange }) {
+  return (
+    <div className="twk-row twk-row-h">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <input type="color" className="twk-swatch" value={value}
+             onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+}
+
+function TweakButton({ label, onClick, secondary = false }) {
+  return (
+    <button type="button" className={secondary ? 'twk-btn secondary' : 'twk-btn'}
+            onClick={onClick}>{label}</button>
+  );
+}
+
+Object.assign(window, {
+  useTweaks, TweaksPanel, TweakSection, TweakRow,
+  TweakSlider, TweakToggle, TweakRadio, TweakSelect,
+  TweakText, TweakNumber, TweakColor, TweakButton,
+});
+
+</script>
+<script type="text/babel">
+
+// BillModal.jsx — Add/Edit Bill Modal
+
+const { useState, useEffect } = React;
+
+const EMPTY_BILL = {
+  name: '',
+  category: 'other',
+  amount: '',
+  minPayment: '',
+  dueDay: 1,
+  statementCloseDay: '',
+  lastFour: '',
+  apr: '',
+  creditLimit: '',
+  currentBalance: '',
+  autopay: false,
+  notes: '',
+};
+
+function BillModal({ bill, onSave, onClose, onDelete }) {
+  const [form, setForm] = useState(bill ? { ...bill } : { ...EMPTY_BILL });
+  const [errors, setErrors] = useState({});
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const isCreditCard = form.category === 'credit_card';
+
+  const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
+
+  function validate() {
+    const e = {};
+    if (!form.name.trim()) e.name = 'Name is required';
+    if (!form.amount || isNaN(Number(form.amount))) e.amount = 'Valid amount required';
+    if (!form.dueDay || form.dueDay < 1 || form.dueDay > 31) e.dueDay = 'Day 1–31';
+    if (isCreditCard && form.lastFour && !/^\d{4}$/.test(form.lastFour)) e.lastFour = 'Must be 4 digits';
+    return e;
+  }
+
+  function handleSave() {
+    const e = validate();
+    if (Object.keys(e).length) { setErrors(e); return; }
+    const saved = {
+      ...form,
+      id: form.id || generateId(),
+      amount: parseFloat(form.amount),
+      minPayment: form.minPayment ? parseFloat(form.minPayment) : undefined,
+      apr: form.apr ? parseFloat(form.apr) : undefined,
+      creditLimit: form.creditLimit ? parseFloat(form.creditLimit) : undefined,
+      currentBalance: form.currentBalance ? parseFloat(form.currentBalance) : undefined,
+      dueDay: parseInt(form.dueDay),
+      statementCloseDay: form.statementCloseDay ? parseInt(form.statementCloseDay) : undefined,
+      paymentHistory: form.paymentHistory || {},
+      createdAt: form.createdAt || new Date().toISOString().slice(0,10),
+    };
+    onSave(saved);
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Escape') onClose();
+  }
+
+  const cat = CATEGORIES.find(c => c.id === form.category);
+
+  return (
+    <div className="modal-overlay" onClick={onClose} onKeyDown={handleKeyDown}>
+      <div className="modal-box" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title">
+            <span className="modal-icon">{cat?.icon || '📋'}</span>
+            <h2>{bill ? 'Edit Bill' : 'Add New Bill'}</h2>
+          </div>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="modal-body">
+          {/* Name + Category */}
+          <div className="form-row">
+            <div className="form-group" style={{flex: 2}}>
+              <label>Bill Name *</label>
+              <input
+                className={errors.name ? 'error' : ''}
+                value={form.name}
+                onChange={e => set('name', e.target.value)}
+                placeholder="e.g. Chase Sapphire Reserve"
+              />
+              {errors.name && <span className="form-error">{errors.name}</span>}
+            </div>
+            <div className="form-group" style={{flex: 1}}>
+              <label>Category *</label>
+              <select value={form.category} onChange={e => set('category', e.target.value)}>
+                {CATEGORIES.map(c => (
+                  <option key={c.id} value={c.id}>{c.icon} {c.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Credit card specific */}
+          {isCreditCard && (
+            <div className="cc-section">
+              <div className="cc-section-label">Credit Card Details</div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Last 4 Digits</label>
+                  <input
+                    className={errors.lastFour ? 'error' : ''}
+                    value={form.lastFour}
+                    onChange={e => set('lastFour', e.target.value.replace(/\D/g,'').slice(0,4))}
+                    placeholder="4821"
+                    maxLength={4}
+                  />
+                  {errors.lastFour && <span className="form-error">{errors.lastFour}</span>}
+                </div>
+                <div className="form-group">
+                  <label>APR (%)</label>
+                  <input
+                    type="number"
+                    value={form.apr}
+                    onChange={e => set('apr', e.target.value)}
+                    placeholder="22.99"
+                    step="0.01"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Credit Limit</label>
+                  <input
+                    type="number"
+                    value={form.creditLimit}
+                    onChange={e => set('creditLimit', e.target.value)}
+                    placeholder="15000"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Current Balance</label>
+                  <input
+                    type="number"
+                    value={form.currentBalance}
+                    onChange={e => set('currentBalance', e.target.value)}
+                    placeholder="4200"
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Statement Closes (Day)</label>
+                  <input
+                    type="number"
+                    value={form.statementCloseDay}
+                    onChange={e => set('statementCloseDay', e.target.value)}
+                    placeholder="22"
+                    min="1" max="31"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Minimum Payment</label>
+                  <input
+                    type="number"
+                    value={form.minPayment}
+                    onChange={e => set('minPayment', e.target.value)}
+                    placeholder="35.00"
+                    step="0.01"
+                  />
+                </div>
+                <div className="form-group" style={{flex:2}}></div>
+              </div>
+            </div>
+          )}
+
+          {/* Amount + Due Day */}
+          <div className="form-row">
+            <div className="form-group">
+              <label>{isCreditCard ? 'Payment Amount' : 'Monthly Amount'} *</label>
+              <div className="input-prefix-wrap">
+                <span className="input-prefix">$</span>
+                <input
+                  className={errors.amount ? 'error' : ''}
+                  type="number"
+                  value={form.amount}
+                  onChange={e => set('amount', e.target.value)}
+                  placeholder="0.00"
+                  step="0.01"
+                  style={{paddingLeft: '28px'}}
+                />
+              </div>
+              {errors.amount && <span className="form-error">{errors.amount}</span>}
+            </div>
+            <div className="form-group">
+              <label>Due Day of Month *</label>
+              <input
+                className={errors.dueDay ? 'error' : ''}
+                type="number"
+                value={form.dueDay}
+                onChange={e => set('dueDay', e.target.value)}
+                min="1" max="31"
+                placeholder="15"
+              />
+              {errors.dueDay && <span className="form-error">{errors.dueDay}</span>}
+            </div>
+            <div className="form-group" style={{justifyContent:'flex-end', paddingTop: '24px'}}>
+              <label className="toggle-label">
+                <input
+                  type="checkbox"
+                  checked={form.autopay}
+                  onChange={e => set('autopay', e.target.checked)}
+                />
+                <span className="toggle-text">Autopay enabled</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div className="form-group">
+            <label>Notes / Memo</label>
+            <textarea
+              value={form.notes}
+              onChange={e => set('notes', e.target.value)}
+              placeholder="Optional notes about this bill..."
+              rows={2}
+            />
+          </div>
+        </div>
+
+        <div className="modal-footer">
+          {bill && (
+            confirmDelete ? (
+              <div className="delete-confirm">
+                <span>Delete this bill?</span>
+                <button className="btn-danger" onClick={() => onDelete(bill.id)}>Yes, Delete</button>
+                <button className="btn-ghost" onClick={() => setConfirmDelete(false)}>Cancel</button>
+              </div>
+            ) : (
+              <button className="btn-ghost danger" onClick={() => setConfirmDelete(true)}>Delete Bill</button>
+            )
+          )}
+          <div style={{marginLeft: 'auto', display: 'flex', gap: '10px'}}>
+            <button className="btn-ghost" onClick={onClose}>Cancel</button>
+            <button className="btn-primary" onClick={handleSave}>
+              {bill ? 'Save Changes' : 'Add Bill'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { BillModal });
+
+</script>
+<script type="text/babel">
+
+// Dashboard.jsx — Main dashboard view
+
+const { useState, useMemo } = React;
+
+function Dashboard({ bills, onEditBill, onTogglePaid }) {
+  const today = new Date();
+  const monthKey = getCurrentMonthKey();
+
+  const stats = useMemo(() => {
+    const total = bills.reduce((s, b) => s + (b.amount || 0), 0);
+    const paid = bills.filter(b => isPaidThisMonth(b)).reduce((s, b) => s + (b.amount || 0), 0);
+    const unpaid = total - paid;
+    const creditCards = bills.filter(b => b.category === 'credit_card');
+    const totalDebt = creditCards.reduce((s, b) => s + (b.currentBalance || 0), 0);
+    const totalCreditLimit = creditCards.reduce((s, b) => s + (b.creditLimit || 0), 0);
+    const utilization = totalCreditLimit > 0 ? (totalDebt / totalCreditLimit * 100) : 0;
+
+    // By category
+    const byCat = {};
+    bills.forEach(b => {
+      if (!byCat[b.category]) byCat[b.category] = 0;
+      byCat[b.category] += b.amount || 0;
+    });
+
+    // YTD — sum monthly amounts × months elapsed
+    const monthsElapsed = today.getMonth() + 1;
+    const ytd = total * monthsElapsed;
+
+    return { total, paid, unpaid, totalDebt, utilization, byCat, ytd, creditCards };
+  }, [bills]);
+
+  // Upcoming & overdue bills
+  const billsWithDays = useMemo(() => {
+    return bills.map(b => ({
+      ...b,
+      daysUntil: getDaysUntilDue(b.dueDay),
+      paid: isPaidThisMonth(b),
+    })).sort((a, b) => a.daysUntil - b.daysUntil);
+  }, [bills]);
+
+  const overdue = billsWithDays.filter(b => b.daysUntil < 0 && !b.paid);
+  const dueSoon = billsWithDays.filter(b => b.daysUntil >= 0 && b.daysUntil <= 7 && !b.paid);
+  const upcoming = billsWithDays.filter(b => b.daysUntil > 7 && b.daysUntil <= 30 && !b.paid);
+
+  // Top categories by spend
+  const topCats = CATEGORIES
+    .map(c => ({ ...c, amount: stats.byCat[c.id] || 0 }))
+    .filter(c => c.amount > 0)
+    .sort((a, b) => b.amount - a.amount);
+
+  const pctPaid = stats.total > 0 ? (stats.paid / stats.total * 100) : 0;
+
+  return (
+    <div className="dashboard">
+      {/* Header */}
+      <div className="dash-header">
+        <div>
+          <h1 className="dash-title">Dashboard</h1>
+          <p className="dash-sub">{today.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' })}</p>
+        </div>
+      </div>
+
+      {/* Alert banners */}
+      {overdue.length > 0 && (
+        <div className="alert-banner overdue">
+          <span className="alert-icon">⚠️</span>
+          <span><strong>{overdue.length} bill{overdue.length>1?'s':''} overdue:</strong> {overdue.map(b=>b.name).join(', ')}</span>
+        </div>
+      )}
+      {dueSoon.length > 0 && (
+        <div className="alert-banner due-soon">
+          <span className="alert-icon">🔔</span>
+          <span><strong>{dueSoon.length} bill{dueSoon.length>1?'s':''} due within 7 days:</strong> {dueSoon.map(b=>b.name).join(', ')}</span>
+        </div>
+      )}
+
+      {/* KPI Cards */}
+      <div className="kpi-grid">
+        <div className="kpi-card primary">
+          <div className="kpi-label">Monthly Obligations</div>
+          <div className="kpi-value">{formatCurrency(stats.total)}</div>
+          <div className="kpi-sub">All bills this month</div>
+        </div>
+        <div className="kpi-card success">
+          <div className="kpi-label">Paid This Month</div>
+          <div className="kpi-value">{formatCurrency(stats.paid)}</div>
+          <div className="kpi-sub">{bills.filter(b => isPaidThisMonth(b)).length} of {bills.length} bills</div>
+        </div>
+        <div className="kpi-card warning">
+          <div className="kpi-label">Still Owed</div>
+          <div className="kpi-value">{formatCurrency(stats.unpaid)}</div>
+          <div className="kpi-sub">{bills.filter(b => !isPaidThisMonth(b)).length} bills remaining</div>
+        </div>
+        <div className="kpi-card accent">
+          <div className="kpi-label">Year-to-Date</div>
+          <div className="kpi-value">{formatCurrency(stats.ytd)}</div>
+          <div className="kpi-sub">{today.toLocaleDateString('en-US',{month:'short'})} est. annual: {formatCurrency(stats.total*12)}</div>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="month-progress-card">
+        <div className="mp-header">
+          <span className="mp-title">Monthly Payment Progress</span>
+          <span className="mp-pct">{Math.round(pctPaid)}% paid</span>
+        </div>
+        <div className="mp-bar-track">
+          <div className="mp-bar-fill" style={{width: `${pctPaid}%`}}></div>
+        </div>
+        <div className="mp-footer">
+          <span className="paid-label">{formatCurrency(stats.paid)} paid</span>
+          <span className="owed-label">{formatCurrency(stats.unpaid)} remaining</span>
+        </div>
+      </div>
+
+      <div className="dash-two-col">
+        {/* Upcoming Bills */}
+        <div className="dash-card">
+          <div className="dash-card-header">
+            <h3>Upcoming &amp; Overdue</h3>
+          </div>
+          <div className="upcoming-list">
+            {overdue.length === 0 && dueSoon.length === 0 && upcoming.length === 0 && (
+              <div className="empty-state">🎉 All caught up! No bills due soon.</div>
+            )}
+            {[...overdue, ...dueSoon, ...upcoming].slice(0,8).map(bill => (
+              <UpcomingBillRow
+                key={bill.id}
+                bill={bill}
+                onEdit={() => onEditBill(bill)}
+                onTogglePaid={() => onTogglePaid(bill.id)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Spending by Category */}
+        <div className="dash-card">
+          <div className="dash-card-header">
+            <h3>Spending by Category</h3>
+          </div>
+          <div className="cat-list">
+            {topCats.map(cat => {
+              const pct = stats.total > 0 ? (cat.amount / stats.total * 100) : 0;
+              return (
+                <div key={cat.id} className="cat-row">
+                  <div className="cat-row-top">
+                    <span className="cat-row-name">
+                      <span className="cat-dot" style={{background: cat.color}}></span>
+                      {cat.label}
+                    </span>
+                    <span className="cat-row-amount">{formatCurrency(cat.amount)}</span>
+                  </div>
+                  <div className="cat-bar-track">
+                    <div className="cat-bar-fill" style={{width:`${pct}%`, background: cat.color}}></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Credit Cards Summary */}
+      {stats.creditCards.length > 0 && (
+        <div className="dash-card">
+          <div className="dash-card-header">
+            <h3>Credit Card Overview</h3>
+            <span className="cc-util-badge" style={{color: stats.utilization > 30 ? '#c62828' : '#2d6a4f'}}>
+              {stats.utilization.toFixed(1)}% utilization
+            </span>
+          </div>
+          <div className="cc-grid">
+            {stats.creditCards.map(cc => {
+              const util = cc.creditLimit > 0 ? (cc.currentBalance / cc.creditLimit * 100) : 0;
+              const daysUntil = getDaysUntilDue(cc.dueDay);
+              const paid = isPaidThisMonth(cc);
+              return (
+                <div key={cc.id} className="cc-summary-card" onClick={() => onEditBill(cc)}>
+                  <div className="cc-card-top">
+                    <div className="cc-card-name">{cc.name}</div>
+                    {cc.lastFour && <div className="cc-card-num">···· {cc.lastFour}</div>}
+                  </div>
+                  <div className="cc-card-balance">{formatCurrency(cc.currentBalance || 0)}</div>
+                  <div className="cc-card-meta">
+                    <span>Limit: {formatCurrency(cc.creditLimit || 0)}</span>
+                    <span>APR: {cc.apr || 0}%</span>
+                  </div>
+                  <div className="cc-util-bar-track">
+                    <div
+                      className="cc-util-bar-fill"
+                      style={{
+                        width: `${Math.min(util,100)}%`,
+                        background: util > 50 ? '#c62828' : util > 30 ? '#e65100' : '#2d6a4f'
+                      }}
+                    ></div>
+                  </div>
+                  <div className="cc-card-bottom">
+                    <span className={`cc-due-badge ${daysUntil < 0 ? 'overdue' : daysUntil <= 7 ? 'soon' : ''}`}>
+                      Due {formatDueDate(cc.dueDay)}
+                    </span>
+                    <span className={`cc-paid-badge ${paid ? 'paid' : ''}`}>{paid ? '✓ Paid' : 'Unpaid'}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UpcomingBillRow({ bill, onEdit, onTogglePaid }) {
+  const urgent = bill.daysUntil < 0 ? 'overdue' : bill.daysUntil <= 3 ? 'critical' : bill.daysUntil <= 7 ? 'soon' : '';
+  const cat = CATEGORIES.find(c => c.id === bill.category);
+  const dayLabel = bill.daysUntil < 0
+    ? `${Math.abs(bill.daysUntil)}d overdue`
+    : bill.daysUntil === 0
+    ? 'Due today'
+    : `Due in ${bill.daysUntil}d`;
+
+  return (
+    <div className={`upcoming-row ${urgent}`} onClick={onEdit}>
+      <div className="upcoming-left">
+        <span className="upcoming-icon">{cat?.icon || '📋'}</span>
+        <div className="upcoming-info">
+          <div className="upcoming-name">{bill.name}</div>
+          <div className="upcoming-meta">
+            {bill.lastFour && <span>···· {bill.lastFour} · </span>}
+            {bill.autopay ? '⚡ Autopay' : '✋ Manual'}
+          </div>
+        </div>
+      </div>
+      <div className="upcoming-right">
+        <div className="upcoming-amount">{formatCurrency(bill.amount)}</div>
+        <div className={`upcoming-days ${urgent}`}>{dayLabel}</div>
+        <button
+          className={`pay-btn ${bill.paid ? 'paid' : ''}`}
+          onClick={e => { e.stopPropagation(); onTogglePaid(); }}
+          title={bill.paid ? 'Mark unpaid' : 'Mark paid'}
+        >
+          {bill.paid ? '✓' : '○'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { Dashboard, UpcomingBillRow });
+
+</script>
+<script type="text/babel">
+
+// BillsList.jsx — Sortable, filterable bills list with payment history
+
+const { useState, useMemo } = React;
+
+function BillsList({ bills, onEditBill, onTogglePaid, onAddBill }) {
+  const [search, setSearch] = useState('');
+  const [catFilter, setCatFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('dueDay');
+  const [sortDir, setSortDir] = useState('asc');
+  const [showHistory, setShowHistory] = useState(null);
+
+  const filtered = useMemo(() => {
+    let list = bills.map(b => ({
+      ...b,
+      daysUntil: getDaysUntilDue(b.dueDay),
+      paid: isPaidThisMonth(b),
+    }));
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(b => b.name.toLowerCase().includes(q) || (b.notes||'').toLowerCase().includes(q) || (b.lastFour||'').includes(q));
+    }
+    if (catFilter !== 'all') list = list.filter(b => b.category === catFilter);
+
+    list.sort((a, b) => {
+      let av, bv;
+      switch(sortBy) {
+        case 'name': av = a.name.toLowerCase(); bv = b.name.toLowerCase(); break;
+        case 'amount': av = a.amount; bv = b.amount; break;
+        case 'dueDay': av = a.dueDay; bv = b.dueDay; break;
+        case 'category': av = a.category; bv = b.category; break;
+        case 'status': av = a.paid ? 1 : 0; bv = b.paid ? 1 : 0; break;
+        default: av = a.dueDay; bv = b.dueDay;
+      }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }, [bills, search, catFilter, sortBy, sortDir]);
+
+  function toggleSort(col) {
+    if (sortBy === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortBy(col); setSortDir('asc'); }
+  }
+
+  const SortIcon = ({ col }) => {
+    if (sortBy !== col) return <span className="sort-icon neutral">⇅</span>;
+    return <span className="sort-icon active">{sortDir === 'asc' ? '↑' : '↓'}</span>;
+  };
+
+  const totalFiltered = filtered.reduce((s, b) => s + b.amount, 0);
+  const usedCats = [...new Set(bills.map(b => b.category))];
+
+  return (
+    <div className="bills-list-view">
+      <div className="view-header">
+        <div>
+          <h1 className="view-title">All Bills &amp; Expenses</h1>
+          <p className="view-sub">{filtered.length} bills · {formatCurrency(totalFiltered)}/mo</p>
+        </div>
+        <button className="btn-primary" onClick={onAddBill}>+ Add Bill</button>
+      </div>
+
+      {/* Filters */}
+      <div className="filters-bar">
+        <div className="search-wrap">
+          <span className="search-icon">🔍</span>
+          <input
+            className="search-input"
+            placeholder="Search bills..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          {search && <button className="search-clear" onClick={() => setSearch('')}>✕</button>}
+        </div>
+        <div className="cat-filter-pills">
+          <button
+            className={`pill ${catFilter === 'all' ? 'active' : ''}`}
+            onClick={() => setCatFilter('all')}
+          >All</button>
+          {CATEGORIES.filter(c => usedCats.includes(c.id)).map(c => (
+            <button
+              key={c.id}
+              className={`pill ${catFilter === c.id ? 'active' : ''}`}
+              onClick={() => setCatFilter(c.id)}
+            >{c.icon} {c.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bills-table-wrap">
+        <table className="bills-table">
+          <thead>
+            <tr>
+              <th className="th-status">Status</th>
+              <th className="th-name sortable" onClick={() => toggleSort('name')}>
+                Bill Name <SortIcon col="name" />
+              </th>
+              <th className="th-cat sortable" onClick={() => toggleSort('category')}>
+                Category <SortIcon col="category" />
+              </th>
+              <th className="th-due sortable" onClick={() => toggleSort('dueDay')}>
+                Due Date <SortIcon col="dueDay" />
+              </th>
+              <th className="th-amount sortable" onClick={() => toggleSort('amount')}>
+                Amount <SortIcon col="amount" />
+              </th>
+              <th className="th-autopay">Autopay</th>
+              <th className="th-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0 && (
+              <tr><td colSpan={7} className="empty-row">No bills found</td></tr>
+            )}
+            {filtered.map(bill => {
+              const cat = CATEGORIES.find(c => c.id === bill.category);
+              const urgency = bill.paid ? 'paid' : bill.daysUntil < 0 ? 'overdue' : bill.daysUntil <= 3 ? 'critical' : bill.daysUntil <= 7 ? 'soon' : '';
+              const showingHistory = showHistory === bill.id;
+              return (
+                <React.Fragment key={bill.id}>
+                  <tr
+                    className={`bill-row ${urgency} ${showingHistory ? 'expanded' : ''}`}
+                    onClick={() => onEditBill(bill)}
+                  >
+                    <td className="td-status">
+                      <button
+                        className={`pay-btn-lg ${bill.paid ? 'paid' : ''}`}
+                        onClick={e => { e.stopPropagation(); onTogglePaid(bill.id); }}
+                        title={bill.paid ? 'Mark unpaid' : 'Mark paid'}
+                      >
+                        {bill.paid ? '✓' : '○'}
+                      </button>
+                    </td>
+                    <td className="td-name">
+                      <div className="bill-name-cell">
+                        <span className="bill-cat-icon">{cat?.icon}</span>
+                        <div>
+                          <div className="bill-name">{bill.name}</div>
+                          {bill.lastFour && <div className="bill-sub">···· {bill.lastFour} · APR {bill.apr}%</div>}
+                          {bill.notes && !bill.lastFour && <div className="bill-sub">{bill.notes}</div>}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="td-cat">
+                      <span className="cat-badge" style={{background: cat?.color + '22', color: cat?.color}}>
+                        {cat?.label}
+                      </span>
+                    </td>
+                    <td className="td-due">
+                      <div className="due-info">
+                        <span className="due-date">{formatDueDate(bill.dueDay)}</span>
+                        {!bill.paid && (
+                          <span className={`due-badge ${urgency}`}>
+                            {bill.daysUntil < 0 ? `${Math.abs(bill.daysUntil)}d overdue` :
+                             bill.daysUntil === 0 ? 'Today' :
+                             `${bill.daysUntil}d left`}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="td-amount">
+                      <div className="amount-cell">
+                        <span className="amount-main">{formatCurrency(bill.amount)}</span>
+                        {bill.category === 'credit_card' && bill.minPayment && (
+                          <span className="amount-min">min {formatCurrency(bill.minPayment)}</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="td-autopay">
+                      <span className={`autopay-badge ${bill.autopay ? 'on' : 'off'}`}>
+                        {bill.autopay ? '⚡ Auto' : '✋ Manual'}
+                      </span>
+                    </td>
+                    <td className="td-actions" onClick={e => e.stopPropagation()}>
+                      <button
+                        className="hist-btn"
+                        onClick={() => setShowHistory(showingHistory ? null : bill.id)}
+                        title="Payment history"
+                      >📅</button>
+                    </td>
+                  </tr>
+                  {showingHistory && (
+                    <tr className="history-row">
+                      <td colSpan={7}>
+                        <PaymentHistory bill={bill} />
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="totals-row">
+              <td colSpan={4} className="totals-label">Monthly Total</td>
+              <td className="totals-amount">{formatCurrency(totalFiltered)}</td>
+              <td colSpan={2} className="totals-annual">
+                Annual est: {formatCurrency(totalFiltered * 12)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function PaymentHistory({ bill }) {
+  const months = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = getMonthKey(d);
+    const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    months.push({ key, label, paid: !!(bill.paymentHistory && bill.paymentHistory[key]) });
+  }
+  return (
+    <div className="payment-history">
+      <div className="ph-title">Payment History (6 months)</div>
+      <div className="ph-months">
+        {months.map(m => (
+          <div key={m.key} className={`ph-month ${m.paid ? 'paid' : 'unpaid'}`}>
+            <div className="ph-dot">{m.paid ? '✓' : '—'}</div>
+            <div className="ph-label">{m.label}</div>
+          </div>
+        ))}
+      </div>
+      {bill.notes && <div className="ph-notes">📝 {bill.notes}</div>}
+    </div>
+  );
+}
+
+Object.assign(window, { BillsList, PaymentHistory });
+
+</script>
+<script type="text/babel">
+
+// CalendarView.jsx — Monthly cash flow calendar
+
+const { useState, useMemo } = React;
+
+function CalendarView({ bills, onEditBill, onTogglePaid }) {
+  const today = new Date();
+  const [viewMonth, setViewMonth] = useState(today.getMonth());
+  const [viewYear, setViewYear] = useState(today.getFullYear());
+
+  const monthName = new Date(viewYear, viewMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  function prevMonth() {
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
+    else setViewMonth(m => m - 1);
+  }
+  function nextMonth() {
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
+    else setViewMonth(m => m + 1);
+  }
+
+  // Build calendar grid
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+  // Group bills by due day
+  const billsByDay = useMemo(() => {
+    const map = {};
+    bills.forEach(b => {
+      const day = Math.min(b.dueDay, daysInMonth);
+      if (!map[day]) map[day] = [];
+      map[day].push(b);
+    });
+    return map;
+  }, [bills, daysInMonth]);
+
+  // Monthly totals
+  const totalMonth = bills.reduce((s, b) => s + b.amount, 0);
+  const paidMonth = bills.filter(b => isPaidThisMonth(b)).reduce((s, b) => s + b.amount, 0);
+
+  // Build grid cells
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  const isCurrentMonth = viewMonth === today.getMonth() && viewYear === today.getFullYear();
+
+  return (
+    <div className="calendar-view">
+      <div className="view-header">
+        <div>
+          <h1 className="view-title">Cash Flow Calendar</h1>
+          <p className="view-sub">Visualize when bills hit throughout the month</p>
+        </div>
+        <div className="cal-nav">
+          <button className="cal-nav-btn" onClick={prevMonth}>‹</button>
+          <span className="cal-month-label">{monthName}</span>
+          <button className="cal-nav-btn" onClick={nextMonth}>›</button>
+        </div>
+      </div>
+
+      {/* Month summary strip */}
+      <div className="cal-summary-strip">
+        <div className="cal-sum-item">
+          <span className="cal-sum-label">Total Due</span>
+          <span className="cal-sum-value">{formatCurrency(totalMonth)}</span>
+        </div>
+        <div className="cal-sum-divider"></div>
+        {isCurrentMonth && (
+          <>
+            <div className="cal-sum-item">
+              <span className="cal-sum-label">Paid</span>
+              <span className="cal-sum-value green">{formatCurrency(paidMonth)}</span>
+            </div>
+            <div className="cal-sum-divider"></div>
+            <div className="cal-sum-item">
+              <span className="cal-sum-label">Remaining</span>
+              <span className="cal-sum-value amber">{formatCurrency(totalMonth - paidMonth)}</span>
+            </div>
+            <div className="cal-sum-divider"></div>
+          </>
+        )}
+        <div className="cal-sum-item">
+          <span className="cal-sum-label">Bills</span>
+          <span className="cal-sum-value">{bills.length}</span>
+        </div>
+        <div className="cal-sum-divider"></div>
+        <div className="cal-sum-item">
+          <span className="cal-sum-label">Annual Est.</span>
+          <span className="cal-sum-value">{formatCurrency(totalMonth * 12)}</span>
+        </div>
+      </div>
+
+      {/* Calendar grid */}
+      <div className="cal-grid-wrap">
+        <div className="cal-dow-header">
+          {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
+            <div key={d} className="cal-dow">{d}</div>
+          ))}
+        </div>
+        <div className="cal-grid">
+          {cells.map((day, idx) => {
+            if (!day) return <div key={`empty-${idx}`} className="cal-cell empty"></div>;
+            const dayBills = billsByDay[day] || [];
+            const isToday = isCurrentMonth && day === today.getDate();
+            const totalDay = dayBills.reduce((s, b) => s + b.amount, 0);
+            const hasPaid = dayBills.some(b => isPaidThisMonth(b));
+            const hasUnpaid = dayBills.some(b => !isPaidThisMonth(b));
+            const hasOverdue = isCurrentMonth && dayBills.some(b => !isPaidThisMonth(b) && day < today.getDate());
+            return (
+              <div
+                key={day}
+                className={`cal-cell ${dayBills.length > 0 ? 'has-bills' : ''} ${isToday ? 'today' : ''} ${hasOverdue ? 'has-overdue' : ''}`}
+              >
+                <div className="cal-day-num">
+                  <span className={isToday ? 'today-badge' : ''}>{day}</span>
+                </div>
+                {dayBills.length > 0 && (
+                  <div className="cal-day-bills">
+                    {dayBills.map(bill => {
+                      const cat = CATEGORIES.find(c => c.id === bill.category);
+                      const paid = isPaidThisMonth(bill);
+                      const overdue = isCurrentMonth && !paid && day < today.getDate();
+                      return (
+                        <div
+                          key={bill.id}
+                          className={`cal-bill-chip ${paid ? 'paid' : ''} ${overdue ? 'overdue' : ''}`}
+                          style={{ borderLeftColor: cat?.color || '#999' }}
+                          onClick={() => onEditBill(bill)}
+                          title={`${bill.name} — ${formatCurrency(bill.amount)}`}
+                        >
+                          <span className="chip-icon">{cat?.icon}</span>
+                          <span className="chip-name">{bill.name.length > 14 ? bill.name.slice(0,13)+'…' : bill.name}</span>
+                          <span className="chip-amount">{formatCurrency(bill.amount)}</span>
+                          {isCurrentMonth && (
+                            <button
+                              className={`chip-pay ${paid ? 'paid' : ''}`}
+                              onClick={e => { e.stopPropagation(); onTogglePaid(bill.id); }}
+                              title={paid ? 'Mark unpaid' : 'Mark paid'}
+                            >{paid ? '✓' : '○'}</button>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {totalDay > 0 && (
+                      <div className="cal-day-total">{formatCurrency(totalDay)}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="cal-legend">
+        <span className="legend-item"><span className="legend-dot green"></span>Paid</span>
+        <span className="legend-item"><span className="legend-dot amber"></span>Unpaid / Due Soon</span>
+        <span className="legend-item"><span className="legend-dot red"></span>Overdue</span>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { CalendarView });
+
+</script>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accentColor": "#1a2e4a",
+  "fontStyle": "serif-display",
+  "compactMode": true,
+  "showSampleData": true
+}/*EDITMODE-END*/;
+
+// ─── Google Sheets Sync ───────────────────────────────────
+const SYNC_URL_KEY = 'homesync_url_v1';
+const SYNC_POLL_MS = 30000; // poll every 30 seconds
+const DEFAULT_SYNC_URL = 'https://script.google.com/macros/s/AKfycbwv_msIipfbS_Ftr8lucqRYjmvkTZL7D8QWjG9csCnEF2C-nwohj7dWfszFPl6B_qOGTQ/exec';
+
+function getSyncUrl() {
+  return localStorage.getItem(SYNC_URL_KEY) || DEFAULT_SYNC_URL;
+}
+function setSyncUrl(url) {
+  localStorage.setItem(SYNC_URL_KEY, url);
+}
+
+async function sheetsPush(url, data) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'merge', data }),
+  });
+  return res.json();
+}
+
+async function sheetsPull(url) {
+  const res = await fetch(`${url}?action=read`);
+  return res.json();
+}
+
+// ─── Settings View ────────────────────────────────────────
+function SettingsView({ data, onDataChange, onExport, onImport, syncState, onSyncUrlChange, onForcePull, onForcePush }) {
+  const fileRef = useRef();
+  const [urlInput, setUrlInput] = useState(getSyncUrl());
+  const [urlSaved, setUrlSaved] = useState(false);
+  const totalMonthly = data.bills.reduce((s, b) => s + b.amount, 0);
+  const today = new Date();
+
+  function handleSaveUrl() {
+    setSyncUrl(urlInput.trim());
+    onSyncUrlChange(urlInput.trim());
+    setUrlSaved(true);
+    setTimeout(() => setUrlSaved(false), 2000);
+  }
+
+  const syncStatusColor = syncState.status === 'synced' ? 'var(--green)'
+    : syncState.status === 'syncing' ? 'var(--amber)'
+    : syncState.status === 'error' ? 'var(--red)'
+    : 'var(--text3)';
+
+  const syncStatusLabel = syncState.status === 'synced' ? '● SYNCED'
+    : syncState.status === 'syncing' ? '◌ SYNCING...'
+    : syncState.status === 'error' ? '✕ SYNC ERROR'
+    : '○ NOT CONFIGURED';
+
+  return (
+    <div className="settings-view">
+      <div className="view-header">
+        <div>
+          <h1 className="view-title">Settings &amp; Data</h1>
+          <p className="view-sub">Manage your family budget &amp; sync</p>
+        </div>
+      </div>
+
+      {/* Google Sheets Sync */}
+      <div className="settings-section" style={{borderColor: urlInput ? 'rgba(0,212,255,0.3)' : 'var(--border)'}}>
+        <div className="settings-title" style={{color:'var(--cyan)'}}>🔄 Google Sheets Sync</div>
+
+        <div className="settings-row">
+          <div style={{flex:1, marginRight:'16px'}}>
+            <div className="settings-label">Web App URL</div>
+            <div className="settings-desc">Paste your Google Apps Script deployment URL here. Both devices must use the same URL.</div>
+          </div>
+          <span style={{fontFamily:'var(--font-mono)', fontSize:'11px', fontWeight:'700', color: syncStatusColor}}>{syncStatusLabel}</span>
+        </div>
+
+        <div style={{marginBottom:'12px'}}>
+          <input
+            style={{
+              width:'100%', padding:'9px 12px',
+              background:'var(--bg3)', border:'1px solid var(--border)',
+              borderRadius:'var(--radius-sm)', color:'var(--text)',
+              fontFamily:'var(--font-mono)', fontSize:'11px', outline:'none',
+            }}
+            placeholder="https://script.google.com/macros/s/YOUR_ID/exec"
+            value={urlInput}
+            onChange={e => setUrlInput(e.target.value)}
+            onFocus={e => e.target.style.borderColor='var(--cyan)'}
+            onBlur={e => e.target.style.borderColor='var(--border)'}
+          />
+        </div>
+
+        <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+          <button className="btn-primary" onClick={handleSaveUrl}>
+            {urlSaved ? '✓ SAVED' : 'SAVE URL'}
+          </button>
+          {getSyncUrl() && (<>
+            <button className="btn-ghost" onClick={onForcePull} title="Pull latest data from Google Sheets">
+              ⬇ Pull from Sheet
+            </button>
+            <button className="btn-ghost" onClick={onForcePush} title="Push local data to Google Sheets">
+              ⬆ Push to Sheet
+            </button>
+          </>)}
+        </div>
+
+        {syncState.lastSynced && (
+          <div style={{marginTop:'10px', fontSize:'10px', color:'var(--text3)', fontFamily:'var(--font-mono)'}}>
+            Last synced: {new Date(syncState.lastSynced).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}
+            {syncState.error && <span style={{color:'var(--red)', marginLeft:'12px'}}>Error: {syncState.error}</span>}
+          </div>
+        )}
+
+        <div style={{marginTop:'14px', padding:'10px 12px', background:'var(--bg3)', borderRadius:'var(--radius-sm)', border:'1px solid var(--border)'}}>
+          <div style={{fontSize:'10px', fontWeight:'700', color:'var(--cyan)', fontFamily:'var(--font-mono)', marginBottom:'8px', letterSpacing:'1px'}}>SETUP INSTRUCTIONS</div>
+          <ol style={{fontSize:'11px', color:'var(--text3)', fontFamily:'var(--font-mono)', paddingLeft:'16px', lineHeight:'1.8'}}>
+            <li>Open your "Home$" Google Sheet</li>
+            <li>Click <strong style={{color:'var(--text)'}}>Extensions → Apps Script</strong></li>
+            <li>Delete existing code, paste the <strong style={{color:'var(--cyan)'}}>GoogleAppsScript.js</strong> file contents</li>
+            <li>Click <strong style={{color:'var(--text)'}}>Deploy → New Deployment → Web App</strong></li>
+            <li>Execute as: <strong style={{color:'var(--text)'}}>Me</strong> · Access: <strong style={{color:'var(--text)'}}>Anyone</strong></li>
+            <li>Authorize &amp; copy the <strong style={{color:'var(--cyan)'}}>Web App URL</strong></li>
+            <li>Paste URL above → Save · Share same URL with your wife</li>
+          </ol>
+        </div>
+      </div>
+
+      {/* Budget Summary */}
+      <div className="settings-section">
+        <div className="settings-title">Budget Summary</div>
+        <div className="settings-row">
+          <div><div className="settings-label">Total Monthly Bills</div><div className="settings-desc">{data.bills.length} bills tracked</div></div>
+          <strong style={{fontSize:'18px', color:'var(--cyan)', fontFamily:'var(--font-mono)'}}>{formatCurrency(totalMonthly)}</strong>
+        </div>
+        <div className="settings-row">
+          <div><div className="settings-label">Estimated Annual</div><div className="settings-desc">Monthly × 12</div></div>
+          <strong style={{fontSize:'16px', color:'var(--cyan)', fontFamily:'var(--font-mono)'}}>{formatCurrency(totalMonthly * 12)}</strong>
+        </div>
+        <div className="settings-row">
+          <div><div className="settings-label">Credit Card Debt</div><div className="settings-desc">Total across all cards</div></div>
+          <strong style={{fontSize:'16px', color:'var(--red)', fontFamily:'var(--font-mono)'}}>
+            {formatCurrency(data.bills.filter(b=>b.category==='credit_card').reduce((s,b)=>s+(b.currentBalance||0),0))}
+          </strong>
+        </div>
+      </div>
+
+      {/* Data Management */}
+      <div className="settings-section">
+        <div className="settings-title">Data Management</div>
+        <div className="settings-row">
+          <div>
+            <div className="settings-label">Export Data</div>
+            <div className="settings-desc">Download all bills as JSON backup</div>
+          </div>
+          <button className="btn-primary" onClick={onExport}>⬇ Export JSON</button>
+        </div>
+        <div className="settings-row">
+          <div>
+            <div className="settings-label">Import Data</div>
+            <div className="settings-desc">Load a previously exported JSON file</div>
+          </div>
+          <div className="import-btn-wrap">
+            <button className="btn-ghost">⬆ Import JSON</button>
+            <input
+              type="file" accept=".json" ref={fileRef}
+              onChange={e => {
+                if (e.target.files[0]) {
+                  importData(e.target.files[0], (err, imported) => {
+                    if (err) alert('Failed to import: invalid file');
+                    else onImport(imported);
+                    e.target.value = '';
+                  });
+                }
+              }}
+            />
+          </div>
+        </div>
+        <div className="settings-row">
+          <div><div className="settings-label">Print Monthly Summary</div><div className="settings-desc">Printer-friendly view</div></div>
+          <button className="btn-ghost" onClick={() => window.print()}>🖨 Print</button>
+        </div>
+        <div className="settings-row">
+          <div><div className="settings-label">Reset to Sample Data</div><div className="settings-desc">Restore demo bills</div></div>
+          <button className="btn-ghost danger" onClick={() => {
+            if (confirm('Reset all data to sample bills?')) {
+              const fresh = { bills: SAMPLE_BILLS, budget: { monthly: 6500 }, settings: { userName: 'Family Budget' } };
+              saveData(fresh);
+              onDataChange(fresh);
+            }
+          }}>Reset</button>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-title">About Home$</div>
+        <div className="settings-row">
+          <div><div className="settings-label">Sync Method</div><div className="settings-desc">Google Sheets via Apps Script Web App</div></div>
+          <span style={{fontSize:'11px', color:'var(--green)', fontWeight:'700', fontFamily:'var(--font-mono)'}}>🔒 Your sheet only</span>
+        </div>
+        <div className="settings-row">
+          <div><div className="settings-label">Poll Interval</div><div className="settings-desc">Checks for changes every 30 seconds</div></div>
+          <span style={{fontSize:'11px', color:'var(--text3)', fontFamily:'var(--font-mono)'}}>30s</span>
+        </div>
+        <div className="settings-row">
+          <div><div className="settings-label">Today</div><div className="settings-desc">{today.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'})}</div></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main App ─────────────────────────────────────────────
+function App() {
+  const [data, setData] = useState(() => loadData());
+  const [view, setView] = useState('dashboard');
+  const [modal, setModal] = useState(null);
+  const [syncUrl, setSyncUrlState] = useState(() => getSyncUrl());
+  const [syncState, setSyncState] = useState({
+    status: 'idle',
+    lastSynced: null,
+    error: null,
+  });
+  const syncUrlRef = useRef(syncUrl);
+  const dataRef = useRef(data);
+  const { tweaks, TweaksUI } = useTweaks(TWEAK_DEFAULTS);
+
+  useEffect(() => { syncUrlRef.current = syncUrl; }, [syncUrl]);
+  useEffect(() => { dataRef.current = data; }, [data]);
+
+  // Persist locally on every change + push to sheets
+  useEffect(() => {
+    saveData(data);
+    if (syncUrlRef.current) {
+      pushToSheets(data);
+    }
+  }, [data]);
+
+  async function pushToSheets(d) {
+    const url = syncUrlRef.current;
+    if (!url) return;
+    setSyncState(s => ({ ...s, status: 'syncing' }));
+    try {
+      await sheetsPush(url, d);
+      setSyncState({ status: 'synced', lastSynced: new Date().toISOString(), error: null });
+    } catch(e) {
+      setSyncState(s => ({ ...s, status: 'error', error: e.message }));
+    }
+  }
+
+  async function pullFromSheets() {
+    const url = syncUrlRef.current;
+    if (!url) return;
+    setSyncState(s => ({ ...s, status: 'syncing' }));
+    try {
+      const res = await sheetsPull(url);
+      if (res.success && res.data) {
+        // Merge: remote bills win for any id not in local
+        const localBillMap = {};
+        dataRef.current.bills.forEach(b => { localBillMap[b.id] = b; });
+        const remoteBillMap = {};
+        (res.data.bills || []).forEach(b => { remoteBillMap[b.id] = b; });
+        // Union: keep local changes, add any remote-only bills
+        const merged = { ...dataRef.current, bills: Object.values({ ...remoteBillMap, ...localBillMap }) };
+        setData(merged);
+        saveData(merged);
+      }
+      setSyncState({ status: 'synced', lastSynced: new Date().toISOString(), error: null });
+    } catch(e) {
+      setSyncState(s => ({ ...s, status: 'error', error: e.message }));
+    }
+  }
+
+  // Poll every 30 seconds
+  useEffect(() => {
+    if (!syncUrl) return;
+    pullFromSheets(); // initial pull on load
+    const interval = setInterval(pullFromSheets, SYNC_POLL_MS);
+    return () => clearInterval(interval);
+  }, [syncUrl]);
+
+  const bills = data.bills;
+
+  const alertCount = bills.filter(b => {
+    const d = getDaysUntilDue(b.dueDay);
+    return (d < 0 || d <= 7) && !isPaidThisMonth(b);
+  }).length;
+
+  function handleSaveBill(bill) {
+    setData(d => {
+      const exists = d.bills.find(b => b.id === bill.id);
+      const updated = exists
+        ? d.bills.map(b => b.id === bill.id ? bill : b)
+        : [...d.bills, bill];
+      return { ...d, bills: updated };
+    });
+    setModal(null);
+  }
+
+  function handleDeleteBill(id) {
+    setData(d => ({ ...d, bills: d.bills.filter(b => b.id !== id) }));
+    setModal(null);
+  }
+
+  function handleTogglePaid(id) {
+    const key = getCurrentMonthKey();
+    setData(d => ({
+      ...d,
+      bills: d.bills.map(b => {
+        if (b.id !== id) return b;
+        const hist = { ...(b.paymentHistory || {}) };
+        if (hist[key]) delete hist[key];
+        else hist[key] = new Date().toISOString();
+        return { ...b, paymentHistory: hist };
+      }),
+    }));
+  }
+
+  const syncDot = syncState.status === 'synced' ? { color: 'var(--green)', label: '●' }
+    : syncState.status === 'syncing' ? { color: 'var(--amber)', label: '◌' }
+    : syncState.status === 'error' ? { color: 'var(--red)', label: '✕' }
+    : { color: 'var(--text3)', label: '○' };
+
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+    { id: 'bills', label: 'All Bills', icon: '📋' },
+    { id: 'calendar', label: 'Calendar', icon: '📅' },
+    { id: 'settings', label: 'Settings', icon: '⚙️' },
+  ];
+
+  return (
+    <>
+      <div className="app-sidebar">
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-mark">Home$</div>
+          <div className="sidebar-logo-sub">Family Finance</div>
+        </div>
+        <nav className="sidebar-nav">
+          <div className="nav-section-label">Views</div>
+          {navItems.map(item => (
+            <button
+              key={item.id}
+              className={`nav-item ${view === item.id ? 'active' : ''}`}
+              onClick={() => setView(item.id)}
+            >
+              <span className="nav-icon">{item.icon}</span>
+              <span>{item.label}</span>
+              {item.id === 'dashboard' && alertCount > 0 && (
+                <span className="nav-badge">{alertCount}</span>
+              )}
+            </button>
+          ))}
+          <div className="nav-section-label" style={{marginTop:'8px'}}>Quick Add</div>
+          <button className="nav-item" onClick={() => setModal('add')}>
+            <span className="nav-icon">＋</span>
+            <span>Add Bill</span>
+          </button>
+        </nav>
+        <div className="sidebar-bottom">
+          <button
+            className="sidebar-action"
+            onClick={() => setView('settings')}
+            title={`Sync: ${syncState.status}`}
+            style={{color: syncDot.color}}
+          >
+            <span>{syncDot.label}</span>
+            <span>Sync {syncState.status === 'unconfigured' ? '(setup)' : syncState.status}</span>
+          </button>
+          <button className="sidebar-action" onClick={() => exportData(data)}>
+            <span>⬇</span><span>Export</span>
+          </button>
+        </div>
+      </div>
+
+      <main className="app-main">
+        <div className="main-content">
+          {view === 'dashboard' && (
+            <Dashboard
+              bills={bills}
+              onEditBill={b => setModal(b)}
+              onTogglePaid={handleTogglePaid}
+            />
+          )}
+          {view === 'bills' && (
+            <BillsList
+              bills={bills}
+              onEditBill={b => setModal(b)}
+              onTogglePaid={handleTogglePaid}
+              onAddBill={() => setModal('add')}
+            />
+          )}
+          {view === 'calendar' && (
+            <CalendarView
+              bills={bills}
+              onEditBill={b => setModal(b)}
+              onTogglePaid={handleTogglePaid}
+            />
+          )}
+          {view === 'settings' && (
+            <SettingsView
+              data={data}
+              onDataChange={d => { setData(d); saveData(d); }}
+              onExport={() => exportData(data)}
+              onImport={imported => { setData(imported); saveData(imported); }}
+              syncState={syncState}
+              onSyncUrlChange={url => { setSyncUrlState(url); setSyncUrl(url); }}
+              onForcePull={pullFromSheets}
+              onForcePush={() => pushToSheets(data)}
+            />
+          )}
+        </div>
+      </main>
+
+      {modal && (
+        <BillModal
+          bill={modal === 'add' ? null : modal}
+          onSave={handleSaveBill}
+          onClose={() => setModal(null)}
+          onDelete={handleDeleteBill}
+        />
+      )}
+
+      {TweaksUI}
+    </>
+  );
+}
+
+// Tweaks panel integration
+function useTweaks(defaults) {
+  const [tweaks, setTweaksState] = useState(defaults);
+  const [panelVisible, setPanelVisible] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.data?.type === '__activate_edit_mode') setPanelVisible(true);
+      if (e.data?.type === '__deactivate_edit_mode') setPanelVisible(false);
+    };
+    window.addEventListener('message', handler);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  const setTweak = useCallback((key, value) => {
+    const updates = typeof key === 'object' ? key : { [key]: value };
+    setTweaksState(t => ({ ...t, ...updates }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: updates }, '*');
+  }, []);
+
+  const TweaksUI = panelVisible ? (
+    <TweaksPanel onClose={() => {
+      setPanelVisible(false);
+      window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+    }}>
+      <TweakSection title="Theme">
+        <TweakColor label="Accent Color" value={tweaks.accentColor} onChange={v => setTweak('accentColor', v)} />
+        <TweakToggle label="Compact Mode" value={tweaks.compactMode} onChange={v => setTweak('compactMode', v)} />
+      </TweakSection>
+      <TweakSection title="Display">
+        <TweakRadio
+          label="Header Font"
+          value={tweaks.fontStyle}
+          options={[{value:'serif-display',label:'Serif'},{value:'sans',label:'Sans'}]}
+          onChange={v => setTweak('fontStyle', v)}
+        />
+      </TweakSection>
+    </TweaksPanel>
+  ) : null;
+
+  return { tweaks, setTweak, TweaksUI };
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
