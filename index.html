@@ -2548,9 +2548,9 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 // ─── Google Sheets Sync ───────────────────────────────────
-const SYNC_URL_KEY = 'homesync_url_v1';
+const SYNC_URL_KEY = 'homesync_url_v2';
 const SYNC_POLL_MS = 30000; // poll every 30 seconds
-const DEFAULT_SYNC_URL = 'https://script.google.com/macros/s/AKfycbwv_msIipfbS_Ftr8lucqRYjmvkTZL7D8QWjG9csCnEF2C-nwohj7dWfszFPl6B_qOGTQ/exec';
+const DEFAULT_SYNC_URL = 'https://script.google.com/macros/s/AKfycbzHOkGqvM5ry4gyfnmUH1yumJanoDtHNTRIsAchzeRH1stbMo7LCx9hWOaIDFr77Z2Ljw/exec';
 
 function getSyncUrl() {
   return localStorage.getItem(SYNC_URL_KEY) || DEFAULT_SYNC_URL;
@@ -2560,17 +2560,23 @@ function setSyncUrl(url) {
 }
 
 async function sheetsPush(url, data) {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ action: 'merge', data }),
+  // Use GET with encoded data to avoid CORS preflight issues
+  const encoded = encodeURIComponent(JSON.stringify(data));
+  const res = await fetch(`${url}?action=merge&data=${encoded}`, {
+    method: 'GET',
+    redirect: 'follow',
   });
-  return res.json();
+  const text = await res.text();
+  try { return JSON.parse(text); } catch(e) { return { success: true }; }
 }
 
 async function sheetsPull(url) {
-  const res = await fetch(`${url}?action=read`);
-  return res.json();
+  const res = await fetch(`${url}?action=read`, {
+    method: 'GET',
+    redirect: 'follow',
+  });
+  const text = await res.text();
+  try { return JSON.parse(text); } catch(e) { return { success: false, error: 'Parse error' }; }
 }
 
 // ─── Settings View ────────────────────────────────────────
@@ -2785,7 +2791,12 @@ function App() {
     if (!url) return;
     setSyncState(s => ({ ...s, status: 'syncing' }));
     try {
-      await sheetsPush(url, d);
+      // Push bills with deletedIds so remote also excludes them
+      const payload = {
+        ...d,
+        bills: d.bills.filter(b => !(d.deletedIds || []).includes(b.id)),
+      };
+      await sheetsPush(url, payload);
       setSyncState({ status: 'synced', lastSynced: new Date().toISOString(), error: null });
     } catch(e) {
       setSyncState(s => ({ ...s, status: 'error', error: e.message }));
@@ -2799,13 +2810,18 @@ function App() {
     try {
       const res = await sheetsPull(url);
       if (res.success && res.data) {
-        // Merge: remote bills win for any id not in local
+        const current = dataRef.current;
+        // Get list of locally deleted bill IDs
+        const deletedIds = new Set(current.deletedIds || []);
+        // Keep local bills, add any remote-only bills that haven't been deleted
         const localBillMap = {};
-        dataRef.current.bills.forEach(b => { localBillMap[b.id] = b; });
+        current.bills.forEach(b => { localBillMap[b.id] = b; });
         const remoteBillMap = {};
         (res.data.bills || []).forEach(b => { remoteBillMap[b.id] = b; });
-        // Union: keep local changes, add any remote-only bills
-        const merged = { ...dataRef.current, bills: Object.values({ ...remoteBillMap, ...localBillMap }) };
+        // Union: local wins, remote adds new bills, deleted ids are excluded
+        const mergedBills = Object.values({ ...remoteBillMap, ...localBillMap })
+          .filter(b => !deletedIds.has(b.id));
+        const merged = { ...current, bills: mergedBills };
         setData(merged);
         saveData(merged);
       }
@@ -2842,7 +2858,11 @@ function App() {
   }
 
   function handleDeleteBill(id) {
-    setData(d => ({ ...d, bills: d.bills.filter(b => b.id !== id) }));
+    setData(d => ({
+      ...d,
+      bills: d.bills.filter(b => b.id !== id),
+      deletedIds: [...new Set([...(d.deletedIds || []), id])],
+    }));
     setModal(null);
   }
 
